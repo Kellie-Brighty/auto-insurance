@@ -1,6 +1,6 @@
 const getLocalAccessToken = () => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  return user?.token;
+  const user = localStorage.getItem("AutoFlexUserToken");
+  return user;
 };
 
 const TokenService = {

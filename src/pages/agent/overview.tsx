@@ -6,7 +6,7 @@ export default function AgentOverview() {
   const [kycCompleted, setKycCompleted] = useState(false);
 
   useEffect(() => {
-    setKycCompleted(true);
+    setKycCompleted(false);
   }, []);
 
   return kycCompleted ? (

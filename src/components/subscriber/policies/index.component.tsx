@@ -12,6 +12,7 @@ import FormCheckboxComponent from "@/common/form-checkbox/index.component";
 import SubscriberPolicyStatusChipsComponent from "@/components/subscriber/policies/status-chips/index.component";
 import ButtonComponent from "@/common/button/index.component";
 import { useEffect, useState } from "react";
+import subscriberService from "../../../../services/subscriber.service";
 
 const SubscriberPoliciesComponent = () => {
   const [policiesHeaders, setPoliciesHeaders] = useState<TableHeader[]>([]);
@@ -19,6 +20,34 @@ const SubscriberPoliciesComponent = () => {
 
   const [policiesTotalPages, setPoliciesTotalPages] = useState<number>(0);
   const [policiesCurrentPage, setPoliciesCurrentPage] = useState<number>(0);
+  const { GetPolicies } = subscriberService;
+
+  const getPoliciesAction = async () => {
+    const res = await GetPolicies();
+    console.log("Policies:::", res.data.data);
+    if (res.status === 200 || res.status === 201) {
+      setPoliciesRows(
+        res.data.data.policies.map((policy: any) => ({
+          id: policy.id,
+          data: {
+            0: <FormCheckboxComponent />,
+            1: policy.policyName,
+            2: policy.policyNumber,
+            3: policy.policy_amount,
+            4: policy.start_date,
+            5: policy.end_date,
+            6: <SubscriberPolicyStatusChipsComponent type={policy.status} />,
+            7: (
+              <ButtonComponent size={"sm"} variant={"outlined"}>
+                <span>View Details</span>
+              </ButtonComponent>
+            ),
+          },
+        }))
+      );
+      return;
+    }
+  };
 
   useEffect(() => {
     setPoliciesHeaders([
@@ -105,6 +134,7 @@ const SubscriberPoliciesComponent = () => {
 
     setPoliciesTotalPages(50);
     setPoliciesCurrentPage(1);
+    getPoliciesAction();
   }, []);
 
   return (

@@ -66,7 +66,6 @@ const SubscriberPremiumCalculatorComponent = () => {
         quarterly: parsedData.quarterly,
         monthly: parsedData.monthly,
         weekly: parsedData.weekly,
-        excessBuyBack: parsedData.excessBuyBack ? true : false,
       });
     }
   }, []);
@@ -84,7 +83,7 @@ const SubscriberPremiumCalculatorComponent = () => {
         hasExcessBuyBack: states.excessBuyBack,
         policyName: "comprehensive flexi",
       };
-      console.log("Updated api state:::", apiState);
+      console.log("Updated api state:::", parsedData);
       if (states.plan === "") {
         setStates({ ...states, loading: false, error: "Please choose a plan" });
         return;
@@ -220,7 +219,12 @@ const SubscriberPremiumCalculatorComponent = () => {
           <FormCheckboxComponent
             label={"Add excess buy back."}
             checked={states.excessBuyBack}
-            readOnly
+            onChange={() =>
+              setStates({
+                ...states,
+                excessBuyBack: states.excessBuyBack === true ? false : true,
+              })
+            }
           />
         </div>
 
