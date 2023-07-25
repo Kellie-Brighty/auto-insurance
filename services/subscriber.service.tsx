@@ -1,7 +1,7 @@
 import api from "./Api";
 
-const GetPolicies = async () => {
-  return await api.get(`/policy`);
+const GetPolicies = async (userId: any) => {
+  return await api.get(`/policy/user/${userId}`);
 };
 
 const subscriberService = { GetPolicies };
