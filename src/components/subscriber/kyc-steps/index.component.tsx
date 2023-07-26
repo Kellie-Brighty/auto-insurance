@@ -1,16 +1,74 @@
 import SubscriberLayout from "@/layouts/subscriber/index.layout";
 import StepsComponent, { Step } from "@/common/steps/index.component";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import FormInputComponent from "@/common/form-input/index.component";
 import FormSelectComponent from "@/common/form-select/index.component";
 import CaptureImageComponent from "@/common/capture-image/index.component";
 import ButtonComponent from "@/common/button/index.component";
 import FormFileInputComponent from "@/common/form-file-input/index.component";
 import { TruckIcon } from "@heroicons/react/24/outline";
+import { GlobalContext } from "../../../../services/context";
+import subscriberService from "../../../../services/subscriber.service";
+
+type UserDataType = {
+  createdAt: string;
+  deletedAt: null;
+  email: string;
+  emailVerified: true;
+  firstname: null;
+  homeAddress: null;
+  id: number;
+  id_type: null;
+  lastname: null;
+  middlename: null;
+  phoneNumber: string;
+  role: string;
+  status: string;
+  updatedAt: string;
+};
+
+type KYCStatus = {
+  stepIndex: any;
+  status: string;
+};
 
 const SubscriberKycStepsComponent = () => {
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
+  const { subscriberBasicInfo } = useContext(GlobalContext);
+  const [personalDetails, setPersonalDetails] = useState({
+    firstname: "",
+    lastname: "",
+    middlename: "",
+    homeAddress: "",
+    id_type: "",
+  });
+  const [id_data, setIdData] = useState({
+    id_front: "",
+    id_back: "",
+  });
+  const { UpdatedSubscriberInfoKYC, SubscriberID } = subscriberService;
+  const [loading, setLoading] = useState(false);
+
+  const fetchKYCstatus = async () => {
+    const kycStatus = localStorage.getItem("kyc_status");
+    let parsedData: KYCStatus | null = null;
+    if (kycStatus) {
+      parsedData = JSON.parse(kycStatus) as KYCStatus;
+      if (parsedData.status === "completed") {
+        setStepIndex(parsedData.stepIndex + 1);
+      } else {
+        setStepIndex(parsedData.stepIndex);
+      }
+    } else {
+      return;
+    }
+  };
+
+  useEffect(() => {
+    fetchKYCstatus();
+    console.log(subscriberBasicInfo)
+  }, []);
 
   const handlePrevStep = () => {
     if (stepIndex) {
@@ -20,15 +78,70 @@ const SubscriberKycStepsComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "pending" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex - 1);
     }
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
+    // const userData = localStorage.getItem("AutoFlexUserData");
+    // let parsedData: UserDataType | null = null;
+    // if (userData) {
+    //   parsedData = JSON.parse(userData) as UserDataType;
+    //   const userId = parsedData.id;
+
+    //   if (stepIndex && stepIndex === 3) {
+    //     setLoading(true);
+    //     try {
+    //       const res = await UpdatedSubscriberInfoKYC(
+    //         personalDetails.firstname,
+    //         personalDetails.middlename,
+    //         personalDetails.lastname,
+    //         personalDetails.homeAddress,
+    //         personalDetails.id_type,
+    //         userId
+    //       );
+    //       if (res.status === 200 || res.status === 201) {
+    //         console.log("personal details:::", res.data);
+    //         try {
+    //           const mediaRes = await SubscriberID(
+    //             id_data.id_front,
+    //             id_data.id_back,
+    //             userId
+    //           );
+    //           if (mediaRes.status === 200 || mediaRes.status === 201) {
+    //             setLoading(false);
+    //             console.log("subscriber ID:::", mediaRes.data);
+    //             localStorage.setItem(
+    //               "kyc_status",
+    //               JSON.stringify({ stepIndex: stepIndex, status: "completed" })
+    //             );
+    //             setSteps((prev) =>
+    //               prev.map((step) =>
+    //                 step.stepIndex === stepIndex + 1
+    //                   ? { ...step, stepStatus: "in-progress" }
+    //                   : step.stepIndex === stepIndex
+    //                   ? { ...step, stepStatus: "completed" }
+    //                   : step
+    //               )
+    //             );
+
+    //             setStepIndex(stepIndex + 1);
+    //           }
+    //         } catch (err: any) {
+    //           console.log(err.response.data.message);
+    //           setLoading(false);
+    //         }
+    //       }
+    //     } catch (err: any) {
+    //       console.log(err.response.data.message);
+    //     }
+    //   }
+    // }
+
     if (stepIndex) {
       setSteps((prev) =>
         prev.map((step) =>
@@ -36,8 +149,8 @@ const SubscriberKycStepsComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "completed" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex + 1);
@@ -59,6 +172,13 @@ const SubscriberKycStepsComponent = () => {
                   name={"firstName"}
                   required={true}
                   label={"First Name"}
+                  value={personalDetails.firstname}
+                  onChange={(e) =>
+                    setPersonalDetails({
+                      ...personalDetails,
+                      firstname: e.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -67,6 +187,13 @@ const SubscriberKycStepsComponent = () => {
                   name={"middleName"}
                   required={true}
                   label={"Middle Name"}
+                  value={personalDetails.middlename}
+                  onChange={(e) =>
+                    setPersonalDetails({
+                      ...personalDetails,
+                      middlename: e.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -75,6 +202,13 @@ const SubscriberKycStepsComponent = () => {
                   name={"lastName"}
                   required={true}
                   label={"Last Name"}
+                  value={personalDetails.lastname}
+                  onChange={(e) =>
+                    setPersonalDetails({
+                      ...personalDetails,
+                      lastname: e.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -83,6 +217,13 @@ const SubscriberKycStepsComponent = () => {
                   name={"homeAddress"}
                   required={true}
                   label={"Home Address"}
+                  value={personalDetails.homeAddress}
+                  onChange={(e) =>
+                    setPersonalDetails({
+                      ...personalDetails,
+                      homeAddress: e.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -91,31 +232,40 @@ const SubscriberKycStepsComponent = () => {
                   name={"modeOfIdentification"}
                   required={true}
                   label={"Mode Of Identification"}
+                  value={personalDetails.id_type}
+                  onChange={(e) =>
+                    setPersonalDetails({
+                      ...personalDetails,
+                      id_type: e.target.value,
+                    })
+                  }
                 >
-                  <option>National Identification Card</option>
-                  <option>National Identification Card</option>
-                  <option>National Identification Card</option>
+                  <option value={"National Identification Card"}>
+                    National Identification Card
+                  </option>
+                  <option value={"Passport"}>Passport</option>
+                  <option value={"Driver's License"}>Driver's License</option>
                 </FormSelectComponent>
               </div>
 
               <div className={"col-span-12 lg:col-span-6"}>
                 <CaptureImageComponent
                   label={"Front Side"}
-                  onCaptureImage={() => {}}
+                  onCaptureImage={(e) => setIdData({ ...id_data, id_front: e })}
                 />
               </div>
 
               <div className={"col-span-12 lg:col-span-6"}>
                 <CaptureImageComponent
                   label={"Back Side"}
-                  onCaptureImage={() => {}}
+                  onCaptureImage={(e) => setIdData({ ...id_data, id_back: e })}
                 />
               </div>
             </div>
           </div>
         );
       },
-    [],
+    [personalDetails]
   );
 
   const VehicleDetailsComponent = useMemo(
@@ -385,7 +535,7 @@ const SubscriberKycStepsComponent = () => {
           </>
         );
       },
-    [],
+    []
   );
 
   const PaymentDetailsComponent = useMemo(
@@ -564,7 +714,7 @@ const SubscriberKycStepsComponent = () => {
           </div>
         );
       },
-    [],
+    []
   );
 
   const StepSwitch = useMemo(
@@ -584,7 +734,7 @@ const SubscriberKycStepsComponent = () => {
       PersonalDetailsComponent,
       VehicleDetailsComponent,
       PaymentDetailsComponent,
-    ],
+    ]
   );
 
   useEffect(() => {
@@ -640,7 +790,7 @@ const SubscriberKycStepsComponent = () => {
             variant={"filled"}
             onClick={handleNextStep}
           >
-            Next Step
+            {loading ? "Wait..." : "Next Step"}
           </ButtonComponent>
         </div>
       </div>

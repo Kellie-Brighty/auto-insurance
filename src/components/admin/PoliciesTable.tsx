@@ -6,6 +6,7 @@ import TableComponent, {
 import FormCheckboxComponent from "@/common/form-checkbox/index.component";
 import ButtonComponent from "@/common/button/index.component";
 import SubscriberPolicyStatusChipsComponent from "../subscriber/policies/status-chips/index.component";
+import adminService from "../../../services/admin.service";
 
 const PoliciesTable = () => {
   const [policiesHeaders, setPoliciesHeaders] = useState<TableHeader[]>([]);
@@ -13,8 +14,9 @@ const PoliciesTable = () => {
 
   const [policiesTotalPages, setPoliciesTotalPages] = useState<number>(0);
   const [policiesCurrentPage, setPoliciesCurrentPage] = useState<number>(0);
+  const { GetAllPolicies } = adminService;
 
-  useEffect(() => {
+  const getAllPoliciesAction = async () => {
     setPoliciesHeaders([
       { id: 0, label: <FormCheckboxComponent /> },
       { id: 1, label: <span>Policy Name</span> },
@@ -26,79 +28,35 @@ const PoliciesTable = () => {
       { id: 7, label: <span>Actions</span> },
     ]);
 
-    setPoliciesRows([
-      {
-        id: 1,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"active"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-      {
-        id: 2,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"abandoned"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-      {
-        id: 3,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"awaiting"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-      {
-        id: 4,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"expired"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-    ]);
+    const res = await GetAllPolicies();
+    console.log("Policy res:::", res.data.data.policies);
+    if (res.status === 200 || res.status === 201) {
+      setPoliciesRows(
+        res.data.data.policies.map((policy: any) => ({
+          id: policy.id,
+          data: {
+            0: <FormCheckboxComponent />,
+            1: policy.policyName,
+            2: policy.policyNumber === null ? "---" : policy.policyNumber,
+            3: policy.policy_amount,
+            4: policy.start_date === null ? "---" : policy.start_date,
+            5: policy.end_date === null ? "---" : policy.end_date,
+            6: <SubscriberPolicyStatusChipsComponent type={policy.status} />,
+            7: (
+              <ButtonComponent size={"sm"} variant={"outlined"}>
+                <span>View Details</span>
+              </ButtonComponent>
+            ),
+          },
+        }))
+      );
+      setPoliciesTotalPages(50);
+      setPoliciesCurrentPage(1);
+    }
+  };
 
-    setPoliciesTotalPages(50);
-    setPoliciesCurrentPage(1);
+  useEffect(() => {
+    getAllPoliciesAction();
   }, []);
 
   return (

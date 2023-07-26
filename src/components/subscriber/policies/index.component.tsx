@@ -56,7 +56,7 @@ const SubscriberPoliciesComponent = () => {
       parsedData = JSON.parse(userData) as UserDataType;
       const userId = parsedData.id;
       const res = await GetPolicies(userId);
-      console.log("Policies:::", res.data.data);
+      // console.log("Policies:::", res.data.data);
       if (res.status === 200 || res.status === 201) {
         setPoliciesRows(
           res.data.data.policies.map((policy: any) => ({

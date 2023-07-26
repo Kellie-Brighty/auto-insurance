@@ -44,12 +44,12 @@ interface TableComponentProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   selectedAgent?: Agent | null;
-  setSelectedAgent: React.Dispatch<React.SetStateAction<Agent | null>>;
-  setViewAgentModal: React.Dispatch<React.SetStateAction<boolean>>;
-  isAgentTableDialog: boolean;
-  setApproveAgentModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setRejectAgentModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setDeleteAgentModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedAgent?: React.Dispatch<React.SetStateAction<Agent | null>>;
+  setViewAgentModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  isAgentTableDialog?: boolean;
+  setApproveAgentModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  setRejectAgentModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  setDeleteAgentModal?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const TableComponent: React.FC<TableComponentProps> = ({
@@ -115,7 +115,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                     <div
                       className={`flex items-center space-x-4 cursor-pointer`}
                       onClick={() => {
-                        setViewAgentModal(true);
+                        setViewAgentModal && setViewAgentModal(true);
                       }}
                     >
                       <Image
@@ -129,7 +129,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                     <div
                       className={`flex items-center space-x-4 cursor-pointer`}
                       onClick={() => {
-                        setApproveAgentModal(true);
+                        setApproveAgentModal && setApproveAgentModal(true);
                       }}
                     >
                       <Image
@@ -142,7 +142,9 @@ const TableComponent: React.FC<TableComponentProps> = ({
                     </div>
                     <div
                       className={`flex items-center space-x-4 cursor-pointer`}
-                      onClick={() => setRejectAgentModal(true)}
+                      onClick={() =>
+                        setRejectAgentModal && setRejectAgentModal(true)
+                      }
                     >
                       <Image
                         src={"/assets/admin/reject-agent.svg"}
@@ -154,7 +156,9 @@ const TableComponent: React.FC<TableComponentProps> = ({
                     </div>
                     <div
                       className={`flex items-center space-x-4 cursor-pointer`}
-                      onClick={() => setDeleteAgentModal(true)}
+                      onClick={() =>
+                        setDeleteAgentModal && setDeleteAgentModal(true)
+                      }
                     >
                       <Image
                         src={"/assets/admin/delete-agent.svg"}
