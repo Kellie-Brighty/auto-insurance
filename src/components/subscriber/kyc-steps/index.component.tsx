@@ -18,6 +18,7 @@ const SubscriberKycStepsComponent = () => {
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({
     firstName: "",
@@ -63,8 +64,8 @@ const SubscriberKycStepsComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "pending" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex - 1);
@@ -76,32 +77,39 @@ const SubscriberKycStepsComponent = () => {
       switch (stepIndex) {
         case 3:
           console.log(personalDetails);
+          // setLoading(true);
 
-          try {
-            await api.put(
-              `/subscriber/${basicUserInfo?.basic_info.vehicle.user_id}`,
-              {
-                ...personalDetails,
-              },
-            );
+          // try {
+          //   await api.put(
+          //     `/subscriber/${basicUserInfo?.basic_info.vehicle.user_id}`,
+          //     {
+          //       ...personalDetails,
+          //       idCardBack: "",
+          //       idCardFront: "",
+          //     }
+          //   );
 
-            const formData = new FormData();
+          //   const formData = new FormData();
 
-            formData.append("id_front", personalDetails.idCardFront);
-            formData.append("id_back", personalDetails.idCardBack);
-            formData.append(
-              "user_id",
-              basicUserInfo?.basic_info.vehicle.user_id,
-            );
+          //   formData.append("id_front", personalDetails.idCardFront);
+          //   formData.append("id_back", personalDetails.idCardBack);
+          //   formData.append(
+          //     "user_id",
+          //     basicUserInfo?.basic_info.vehicle.user_id
+          //   );
 
-            await api.post(`/subscriber/id-card`, formData);
-          } catch (error) {
-            console.log("Something went wrong: ", error);
-            // return;
-          }
+          //   await api.post(`/subscriber/id-card`, formData);
+          //   setLoading(false);
+          // } catch (error) {
+          //   console.log("Something went wrong: ", error);
+          //   setLoading(false);
+          //   return;
+          // }
           break;
         case 4:
           console.log(vehicleDetails);
+
+          setLoading(true);
 
           try {
             await api.put(`/vehicle/${basicUserInfo?.basic_info.vehicle.id}`, {
@@ -113,33 +121,36 @@ const SubscriberKycStepsComponent = () => {
 
             formData.append(
               "vehicle_dashboard",
-              vehicleDetails.vehicleMedia.dashboard,
+              vehicleDetails.vehicleMedia.dashboard
             );
             formData.append(
               "vehicle_front_side",
-              vehicleDetails.vehicleMedia.frontSide,
+              vehicleDetails.vehicleMedia.frontSide
             );
             formData.append(
               "vehicle_left_side",
-              vehicleDetails.vehicleMedia.leftSide,
+              vehicleDetails.vehicleMedia.leftSide
             );
             formData.append(
               "vehicle_back_side",
-              vehicleDetails.vehicleMedia.backSide,
+              vehicleDetails.vehicleMedia.backSide
             );
             formData.append(
               "vehicle_right_side",
-              vehicleDetails.vehicleMedia.rightSide,
+              vehicleDetails.vehicleMedia.rightSide
             );
             formData.append("vehicle_video", vehicleDetails.vehicleMedia.video);
             formData.append(
-              "user_id",
-              basicUserInfo?.basic_info.vehicle.user_id,
+              "vehicle_id",
+              basicUserInfo?.basic_info.policy.vehicle_id
             );
 
             await api.post(`/vehicle/media`, formData);
+            setLoading(false);
           } catch (error) {
             console.log("Something went wrong: ", error);
+            setLoading(false);
+            return;
           }
           break;
       }
@@ -150,8 +161,8 @@ const SubscriberKycStepsComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "completed" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex + 1);
@@ -241,7 +252,7 @@ const SubscriberKycStepsComponent = () => {
             variant={"filled"}
             onClick={handleNextStep}
           >
-            Next Step
+            {loading ? "Wait..." : "Next Step"}
           </ButtonComponent>
         </div>
       </div>

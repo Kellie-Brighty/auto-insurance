@@ -39,7 +39,9 @@ const AgentApprovalTable = () => {
   const [approveAgentModal, setApproveAgentModal] = useState(false);
   const [rejectAgentModal, setRejectAgentModal] = useState(false);
   const [deleteAgentModal, setDeleteAgentModal] = useState(false);
-  const { GetAllAgents } = adminService;
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [rejectLoading, setRejectLoading] = useState(false);
+  const { GetAllAgents, AgentActivation } = adminService;
 
   const getAllAgentsAction = async () => {
     setPoliciesHeaders([
@@ -93,6 +95,32 @@ const AgentApprovalTable = () => {
   useEffect(() => {
     getAllAgentsAction();
   }, []);
+
+  const approveAgentAction = async () => {
+    setApproveLoading(true);
+
+    try {
+      const res = await AgentActivation("approved", selectedAgent?.id);
+      console.log(res.data);
+      setApproveLoading(false);
+    } catch (err: any) {
+      console.log(err.response.data.message);
+      setApproveLoading(false);
+    }
+  };
+
+  const rejectAgentAction = async () => {
+    setRejectLoading(true);
+
+    try {
+      const res = await AgentActivation("rejected", selectedAgent?.id);
+      console.log(res.data);
+      setRejectLoading(false);
+    } catch (err: any) {
+      console.log(err.response.data.message);
+      setRejectLoading(false);
+    }
+  };
 
   return (
     <div className={"p-6 bg-white rounded-md"}>
@@ -306,9 +334,10 @@ const AgentApprovalTable = () => {
               <div
                 className={`bg-[#05A660] w-[232px] h-[56px] 
                 flex items-center justify-center rounded-full cursor-pointer`}
+                onClick={() => approveAgentAction()}
               >
                 <p className={`font-inter text-[16px] font-normal text-[#fff]`}>
-                  Approve
+                  {approveLoading ? "Approving..." : "Approve"}
                 </p>
               </div>
             </div>
@@ -358,9 +387,10 @@ const AgentApprovalTable = () => {
               <div
                 className={`bg-[#3772FF] w-[232px] h-[56px] 
                 flex items-center justify-center rounded-full cursor-pointer`}
+                onClick={() => rejectAgentAction()}
               >
                 <p className={`font-inter text-[16px] font-normal text-[#fff]`}>
-                  Reject
+                  {rejectLoading ? "Rejecting..." : "Reject"}
                 </p>
               </div>
             </div>

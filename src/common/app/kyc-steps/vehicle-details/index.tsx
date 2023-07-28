@@ -42,7 +42,7 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
   console.log(vehicleDetails);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setVehicleDetails((prev) => ({
       ...prev,
@@ -58,6 +58,7 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
         [e.target.name]: e.target.files?.[0],
       },
     }));
+    console.log(e.target.files?.[0]);
   };
 
   return (
