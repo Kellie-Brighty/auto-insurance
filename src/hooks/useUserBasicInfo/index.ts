@@ -43,35 +43,39 @@ const useUserBasicInfo = () => {
     null,
   );
 
+  const getAndSetUserBasicInfo = () => {
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (autoFlexUserDataString) {
+      const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+      api
+        .get(`/subscriber/basic-info/${autoFlexUserData.id}`)
+        .then((res) => {
+          if (res.data.status === "success") {
+            setUserBasicInfo(res.data.data);
+            localStorage.setItem(
+              "UserBasicInfo",
+              JSON.stringify(res.data.data),
+            );
+          }
+        })
+        .catch((error) => {
+          console.log("Something went wrong: ", error);
+        });
+    }
+  };
+
   useEffect(() => {
     let _userBasicInfo = localStorage.getItem("UserBasicInfo");
 
     if (_userBasicInfo) {
       setUserBasicInfo(JSON.parse(_userBasicInfo) as UserBasicInfo);
     } else {
-      const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
-
-      if (autoFlexUserDataString) {
-        const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
-        api
-          .get(`/subscriber/basic-info/${autoFlexUserData.id}`)
-          .then((res) => {
-            if (res.data.status === "success") {
-              setUserBasicInfo(res.data.data);
-              localStorage.setItem(
-                "UserBasicInfo",
-                JSON.stringify(res.data.data),
-              );
-            }
-          })
-          .catch((error) => {
-            console.log("Something went wrong: ", error);
-          });
-      }
+      getAndSetUserBasicInfo();
     }
   }, []);
 
-  return userBasicInfo;
+  return { userBasicInfo, getAndSetUserBasicInfo };
 };
 
 export default useUserBasicInfo;
