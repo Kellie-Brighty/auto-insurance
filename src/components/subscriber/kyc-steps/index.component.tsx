@@ -9,12 +9,14 @@ import ButtonComponent from "@/common/button/index.component";
 import StepsComponent, { Step } from "@/common/steps/index.component";
 import useUserBasicInfo from "@/hooks/useUserBasicInfo";
 import SubscriberLayout from "@/layouts/subscriber/index.layout";
-import FormData from "form-data";
+import uploadBase64ImageToFirebaseStorage from "@/utils/firebase/uploadBase64ImageToFBStorage";
+import uploadFileToFirebaseStorage from "@/utils/firebase/uploadFileToFirebaseStorage";
+import { uuidv4 } from "@firebase/util";
 import React, { useEffect, useState } from "react";
 import api from "../../../../services/Api";
 
 const SubscriberKycStepsComponent = () => {
-  const basicUserInfo = useUserBasicInfo();
+  const { userBasicInfo, getAndSetUserBasicInfo } = useUserBasicInfo();
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
@@ -31,13 +33,13 @@ const SubscriberKycStepsComponent = () => {
   });
 
   const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
-    carName: basicUserInfo?.basic_info.vehicle.vehicleName || "",
-    year: basicUserInfo?.basic_info.vehicle.vehicleYear || "",
-    carType: basicUserInfo?.basic_info.vehicle.vehicleType || "",
-    carColor: basicUserInfo?.basic_info.vehicle.vehicleColor || "",
-    plateNumber: basicUserInfo?.basic_info.vehicle.plateNumber || "",
-    engineNumber: basicUserInfo?.basic_info.vehicle.engineNumber || "",
-    chassisNumber: basicUserInfo?.basic_info.vehicle.chasisNumber || "",
+    carName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
+    year: userBasicInfo?.basic_info.vehicle.vehicleYear || "",
+    carType: userBasicInfo?.basic_info.vehicle.vehicleType || "",
+    carColor: userBasicInfo?.basic_info.vehicle.vehicleColor || "",
+    plateNumber: userBasicInfo?.basic_info.vehicle.plateNumber || "",
+    engineNumber: userBasicInfo?.basic_info.vehicle.engineNumber || "",
+    chassisNumber: userBasicInfo?.basic_info.vehicle.chasisNumber || "",
     vehicleMedia: {
       dashboard: null,
       frontSide: null,
@@ -55,6 +57,14 @@ const SubscriberKycStepsComponent = () => {
       video: null,
     },
   });
+
+  const fetchKycStatus = async () => {
+    // const kycStatusData = await api.get(
+    //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+    // );
+    // console.log("user basic info:::", userBasicInfo && userBasicInfo);
+    // TODO: set kyc status to a state
+  };
 
   const handlePrevStep = () => {
     if (stepIndex) {
@@ -77,34 +87,58 @@ const SubscriberKycStepsComponent = () => {
       switch (stepIndex) {
         case 3:
           console.log(personalDetails);
-          // setLoading(true);
+          setLoading(true);
 
-          // try {
-          //   await api.put(
-          //     `/subscriber/${basicUserInfo?.basic_info.vehicle.user_id}`,
-          //     {
-          //       ...personalDetails,
-          //       idCardBack: "",
-          //       idCardFront: "",
-          //     }
-          //   );
+          try {
+            await api.put(
+              `/subscriber/${userBasicInfo?.basic_info.vehicle.user_id}`,
+              { ...personalDetails, idCardFront: "", idCardBack: "" }
+            );
 
-          //   const formData = new FormData();
+            const idCardFrontURL = await uploadBase64ImageToFirebaseStorage(
+              personalDetails.idCardFront,
+              `${uuidv4()}.png`
+            );
 
-          //   formData.append("id_front", personalDetails.idCardFront);
-          //   formData.append("id_back", personalDetails.idCardBack);
-          //   formData.append(
-          //     "user_id",
-          //     basicUserInfo?.basic_info.vehicle.user_id
-          //   );
+            const idCardBackURL = await uploadBase64ImageToFirebaseStorage(
+              personalDetails.idCardBack,
+              `${uuidv4()}.png`
+            );
 
-          //   await api.post(`/subscriber/id-card`, formData);
-          //   setLoading(false);
-          // } catch (error) {
-          //   console.log("Something went wrong: ", error);
-          //   setLoading(false);
-          //   return;
-          // }
+            // TODO: add subscriber ID card upload
+            await api.post(`/subscriber/id-card`, {
+              id_front: idCardFrontURL,
+              id_back: idCardBackURL,
+              user_id: userBasicInfo?.basic_info.vehicle.user_id,
+            });
+
+            // TODO: update user data in local storage
+            const autoFlexUserData = await api.get(
+              `/subscriber/${userBasicInfo?.basic_info.vehicle.user_id}`
+            );
+
+            if (autoFlexUserData.data.data) {
+              localStorage.setItem(
+                "AutoFlexUserData",
+                JSON.stringify(autoFlexUserData.data.data)
+              );
+            }
+
+            // TODO: update the kyc status
+            // await api.put(
+            //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+            //   {
+            //     personal_info_complete: true,
+            //   }
+            // );
+
+            await fetchKycStatus();
+            setLoading(false);
+          } catch (error) {
+            console.log("Something went wrong: ", error);
+            setLoading(false);
+            return;
+          }
           break;
         case 4:
           console.log(vehicleDetails);
@@ -112,41 +146,81 @@ const SubscriberKycStepsComponent = () => {
           setLoading(true);
 
           try {
-            await api.put(`/vehicle/${basicUserInfo?.basic_info.vehicle.id}`, {
+            await api.put(`/vehicle/${userBasicInfo?.basic_info.vehicle.id}`, {
               ...vehicleDetails,
               chasisNumber: vehicleDetails.chassisNumber,
+              vehicleMedia: {},
+              vehicleMediaURLs: {},
             });
 
-            const formData = new FormData();
+            const vehicleDashboardURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.dashboard,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.dashboard?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleFrontSideURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.frontSide,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.frontSide?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleLeftSideURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.leftSide,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.leftSide?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleBackSideURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.backSide,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.backSide?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleRightSideURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.rightSide,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.rightSide?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleVideoURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.video,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.video?.name.split(
+                "."
+              )[1]}`
+            );
 
-            formData.append(
-              "vehicle_dashboard",
-              vehicleDetails.vehicleMedia.dashboard
-            );
-            formData.append(
-              "vehicle_front_side",
-              vehicleDetails.vehicleMedia.frontSide
-            );
-            formData.append(
-              "vehicle_left_side",
-              vehicleDetails.vehicleMedia.leftSide
-            );
-            formData.append(
-              "vehicle_back_side",
-              vehicleDetails.vehicleMedia.backSide
-            );
-            formData.append(
-              "vehicle_right_side",
-              vehicleDetails.vehicleMedia.rightSide
-            );
-            formData.append("vehicle_video", vehicleDetails.vehicleMedia.video);
-            formData.append(
-              "vehicle_id",
-              basicUserInfo?.basic_info.policy.vehicle_id
+            // TODO: add vehicle media upload
+            await api.post(
+              `/vehicle/media`,
+              {
+                vehicle_dashboard: vehicleDashboardURL,
+                vehicle_front_side: vehicleFrontSideURL,
+                vehicle_left_side: vehicleLeftSideURL,
+                vehicle_back_side: vehicleBackSideURL,
+                vehicle_right_side: vehicleRightSideURL,
+                vehicle_video: vehicleVideoURL,
+                vehicle_id: userBasicInfo?.basic_info.vehicle.id,
+              },
+              {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              }
             );
 
-            await api.post(`/vehicle/media`, formData);
+            // TODO: update vehicle in basic info
+            getAndSetUserBasicInfo();
+
+            // TODO: update the kyc status
+            // await api.put(
+            //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+            //   {
+            //     vehicle_info_complete: true,
+            //   }
+            // );
             setLoading(false);
+            await fetchKycStatus();
           } catch (error) {
             console.log("Something went wrong: ", error);
             setLoading(false);
@@ -168,6 +242,10 @@ const SubscriberKycStepsComponent = () => {
       setStepIndex(stepIndex + 1);
     }
   };
+
+  useEffect(() => {
+    fetchKycStatus();
+  }, []);
 
   useEffect(() => {
     setSteps([
@@ -198,20 +276,20 @@ const SubscriberKycStepsComponent = () => {
       },
     ]);
     setStepIndex(3);
-  }, []);
+  }, []); // TODO: add a kyc status dependency and update the steps based on the kyc status
 
   useEffect(() => {
     setVehicleDetails((prev) => ({
       ...prev,
-      carName: basicUserInfo?.basic_info.vehicle.vehicleName || "",
-      year: basicUserInfo?.basic_info.vehicle.vehicleYear || "",
-      carType: basicUserInfo?.basic_info.vehicle.vehicleType || "",
-      carColor: basicUserInfo?.basic_info.vehicle.vehicleColor || "",
-      plateNumber: basicUserInfo?.basic_info.vehicle.plateNumber || "",
-      engineNumber: basicUserInfo?.basic_info.vehicle.engineNumber || "",
-      chassisNumber: basicUserInfo?.basic_info.vehicle.chasisNumber || "",
+      carName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
+      year: userBasicInfo?.basic_info.vehicle.vehicleYear || "",
+      carType: userBasicInfo?.basic_info.vehicle.vehicleType || "",
+      carColor: userBasicInfo?.basic_info.vehicle.vehicleColor || "",
+      plateNumber: userBasicInfo?.basic_info.vehicle.plateNumber || "",
+      engineNumber: userBasicInfo?.basic_info.vehicle.engineNumber || "",
+      chassisNumber: userBasicInfo?.basic_info.vehicle.chasisNumber || "",
     }));
-  }, [basicUserInfo]);
+  }, [userBasicInfo]);
 
   return (
     <SubscriberLayout
@@ -233,7 +311,7 @@ const SubscriberKycStepsComponent = () => {
           />
         ) : stepIndex === 5 ? (
           <PaymentDetailsComponent
-            totalAmount={basicUserInfo?.basic_info.policy.policy_amount || 0}
+            totalAmount={userBasicInfo?.basic_info.policy.policy_amount || 0}
           />
         ) : (
           <></>

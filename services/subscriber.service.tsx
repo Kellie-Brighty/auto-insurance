@@ -45,11 +45,41 @@ const SubscriberID = async (
   );
 };
 
+const GetSubscriberVehicles = async (user_id: any) => {
+  return await api.get(`vehicle?user_id=${user_id}`);
+};
+
+const CreateVehicle = async (
+  user_id: any,
+  vehicleYear: string,
+  vehicleWorth: string,
+  vehicleColor: string,
+  vehicleName: string,
+  vehicleType: string,
+  plateNumber: string,
+  chasisNumber: string,
+  engineNumber: string
+) => {
+  return await api.post(`/vehicle`, {
+    user_id,
+    vehicleYear,
+    vehicleWorth,
+    vehicleColor,
+    vehicleName,
+    vehicleType,
+    plateNumber,
+    chasisNumber,
+    engineNumber,
+  });
+};
+
 const subscriberService = {
   GetPolicies,
   GetSubscriberBasicInfo,
   UpdatedSubscriberInfoKYC,
   SubscriberID,
+  GetSubscriberVehicles,
+  CreateVehicle,
 };
 
 export default subscriberService;

@@ -9,6 +9,16 @@ import ButtonComponent from "@/common/button/index.component";
 const SubscriberCreateVehicleComponent = () => {
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
+  const [state, setState] = useState({
+    carName: "",
+    carWorth: "",
+    year: "",
+    carType: "",
+    carColor: "",
+    plateNumber: "",
+    chasisNumber: "",
+    engineNumber: "",
+  });
 
   const handlePrevStep = () => {
     if (stepIndex && stepIndex > 1) {
@@ -18,8 +28,8 @@ const SubscriberCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "pending" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex - 1);
@@ -34,8 +44,8 @@ const SubscriberCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "completed" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex + 1);
@@ -52,11 +62,27 @@ const SubscriberCreateVehicleComponent = () => {
             </div>
 
             <div className={"p-6 grid grid-cols-12 gap-3"}>
-              <div className={"col-span-12 lg:col-span-12"}>
+              <div className={"col-span-12 lg:col-span-6"}>
                 <FormInputComponent
                   name={"carName"}
                   required={true}
                   label={"Which car do you own?"}
+                  value={state.carName}
+                  onChange={(e) =>
+                    setState({ ...state, carName: e.target.value })
+                  }
+                />
+              </div>
+              <div className={"col-span-12 lg:col-span-6"}>
+                <FormInputComponent
+                  name={"carWorth"}
+                  required={true}
+                  label={"What's the car worth?"}
+                  type="number"
+                  value={state.carWorth}
+                  onChange={(e) =>
+                    setState({ ...state, carWorth: e.target.value })
+                  }
                 />
               </div>
 
@@ -66,6 +92,8 @@ const SubscriberCreateVehicleComponent = () => {
                   name={"year"}
                   required={true}
                   label={"Year"}
+                  value={state.year}
+                  onChange={(e) => setState({ ...state, year: e.target.value })}
                 />
               </div>
 
@@ -74,10 +102,14 @@ const SubscriberCreateVehicleComponent = () => {
                   name={"carType"}
                   required={true}
                   label={"Vehicle Type"}
+                  value={state.carType}
+                  onChange={(e) =>
+                    setState({ ...state, carType: e.target.value })
+                  }
                 >
-                  <option>Toyota</option>
-                  <option>Toyota</option>
-                  <option>Toyota</option>
+                  <option value={"Toyota"}>Toyota</option>
+                  <option value={"Mercedes"}>Mercedes</option>
+                  <option value={"Lexus"}>Lexus</option>
                 </FormSelectComponent>
               </div>
 
@@ -86,10 +118,14 @@ const SubscriberCreateVehicleComponent = () => {
                   name={"carColor"}
                   required={true}
                   label={"Vehicle Color"}
+                  value={state.carColor}
+                  onChange={(e) =>
+                    setState({ ...state, carColor: e.target.value })
+                  }
                 >
-                  <option>Black</option>
-                  <option>Black</option>
-                  <option>Black</option>
+                  <option value={"Black"}>Black</option>
+                  <option value={"Red"}>Red</option>
+                  <option value={"Blue"}>Blue</option>
                 </FormSelectComponent>
               </div>
 
@@ -98,6 +134,10 @@ const SubscriberCreateVehicleComponent = () => {
                   name={"plateNumber"}
                   required={true}
                   label={"Plate Number"}
+                  value={state.plateNumber}
+                  onChange={(e) =>
+                    setState({ ...state, plateNumber: e.target.value })
+                  }
                 />
               </div>
 
@@ -106,6 +146,10 @@ const SubscriberCreateVehicleComponent = () => {
                   name={"engineNumber"}
                   required={true}
                   label={"Engine Number"}
+                  value={state.engineNumber}
+                  onChange={(e) =>
+                    setState({ ...state, engineNumber: e.target.value })
+                  }
                 />
               </div>
 
@@ -114,13 +158,17 @@ const SubscriberCreateVehicleComponent = () => {
                   name={"chassisNumber"}
                   required={true}
                   label={"Chassis Number"}
+                  value={state.chasisNumber}
+                  onChange={(e) =>
+                    setState({ ...state, chasisNumber: e.target.value })
+                  }
                 />
               </div>
             </div>
           </div>
         );
       },
-    [],
+    []
   );
 
   const UploadVehicleImagesComponent = useMemo(
@@ -253,7 +301,7 @@ const SubscriberCreateVehicleComponent = () => {
           </div>
         );
       },
-    [],
+    []
   );
 
   const UploadVehicleVideoComponent = useMemo(
@@ -378,7 +426,7 @@ const SubscriberCreateVehicleComponent = () => {
           </div>
         );
       },
-    [],
+    []
   );
 
   const StepSwitch = useMemo(
@@ -398,7 +446,7 @@ const SubscriberCreateVehicleComponent = () => {
       VehicleDetailsComponent,
       UploadVehicleImagesComponent,
       UploadVehicleVideoComponent,
-    ],
+    ]
   );
 
   useEffect(() => {
