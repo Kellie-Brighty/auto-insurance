@@ -40,7 +40,7 @@ interface UserBasicInfo {
 
 const useUserBasicInfo = () => {
   const [userBasicInfo, setUserBasicInfo] = useState<UserBasicInfo | null>(
-    null,
+    null
   );
 
   const getAndSetUserBasicInfo = () => {
@@ -48,6 +48,7 @@ const useUserBasicInfo = () => {
 
     if (autoFlexUserDataString) {
       const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+      // console.log("User data:::", autoFlexUserData);
       api
         .get(`/subscriber/basic-info/${autoFlexUserData.id}`)
         .then((res) => {
@@ -55,7 +56,7 @@ const useUserBasicInfo = () => {
             setUserBasicInfo(res.data.data);
             localStorage.setItem(
               "UserBasicInfo",
-              JSON.stringify(res.data.data),
+              JSON.stringify(res.data.data)
             );
           }
         })

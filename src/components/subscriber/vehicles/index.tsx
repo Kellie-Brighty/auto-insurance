@@ -61,9 +61,9 @@ const SubscriberVehiclesComponent = () => {
       try {
         const res = await GetSubscriberVehicles(autoFlexUserData.id);
         console.log(res.data.data);
-        setVehicles(res.data.data.vehicle)
+        setVehicles(res.data.data.vehicle);
       } catch (err: any) {
-        console.log(err.response.data.message);
+        console.log(err.message);
       }
     }
   };

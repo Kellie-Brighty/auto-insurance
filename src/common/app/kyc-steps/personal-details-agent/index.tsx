@@ -9,8 +9,10 @@ export interface PersonalDetails {
   lastName: string;
   homeAddress: string;
   modeOfIdentification: string;
-  idCardFront: any;
-  idCardBack: any;
+  idCardFront: string;
+  idCardBack: string;
+  email: string;
+  phoneNumber: string;
 }
 
 interface PersonalDetailsComponentProps {
@@ -64,6 +66,26 @@ const PersonalDetailsComponent: React.FC<PersonalDetailsComponentProps> = ({
             required={true}
             label={"Last Name"}
             defaultValue={personalDetails.lastName}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className={"col-span-12 lg:col-span-6"}>
+          <FormInputComponent
+            name={"email"}
+            required={true}
+            label={"Email"}
+            defaultValue={personalDetails.email}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className={"col-span-12 lg:col-span-6"}>
+          <FormInputComponent
+            name={"phoneNumber"}
+            required={true}
+            label={"Phone Number"}
+            defaultValue={personalDetails.phoneNumber}
             onChange={handleChange}
           />
         </div>

@@ -33,10 +33,10 @@ const SubscriberKycStepsComponent = () => {
   });
 
   const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
-    carName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
-    year: userBasicInfo?.basic_info.vehicle.vehicleYear || "",
-    carType: userBasicInfo?.basic_info.vehicle.vehicleType || "",
-    carColor: userBasicInfo?.basic_info.vehicle.vehicleColor || "",
+    vehicleName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
+    vehicleYear: userBasicInfo?.basic_info.vehicle.vehicleYear || "",
+    vehicleType: userBasicInfo?.basic_info.vehicle.vehicleType || "",
+    vehicleColor: userBasicInfo?.basic_info.vehicle.vehicleColor || "",
     plateNumber: userBasicInfo?.basic_info.vehicle.plateNumber || "",
     engineNumber: userBasicInfo?.basic_info.vehicle.engineNumber || "",
     chassisNumber: userBasicInfo?.basic_info.vehicle.chasisNumber || "",
@@ -59,9 +59,17 @@ const SubscriberKycStepsComponent = () => {
   });
 
   const fetchKycStatus = async () => {
-    // const kycStatusData = await api.get(
-    //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
-    // );
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (autoFlexUserDataString) {
+      const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+      const kycStatusData = await api.get(
+        `/subscriber/kyc-status?user_id=${autoFlexUserData.id}`
+      );
+
+      console.log("kycStatus:::", kycStatusData);
+    }
+
     // console.log("user basic info:::", userBasicInfo && userBasicInfo);
     // TODO: set kyc status to a state
   };
@@ -191,23 +199,15 @@ const SubscriberKycStepsComponent = () => {
             );
 
             // TODO: add vehicle media upload
-            await api.post(
-              `/vehicle/media`,
-              {
-                vehicle_dashboard: vehicleDashboardURL,
-                vehicle_front_side: vehicleFrontSideURL,
-                vehicle_left_side: vehicleLeftSideURL,
-                vehicle_back_side: vehicleBackSideURL,
-                vehicle_right_side: vehicleRightSideURL,
-                vehicle_video: vehicleVideoURL,
-                vehicle_id: userBasicInfo?.basic_info.vehicle.id,
-              },
-              {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              }
-            );
+            await api.post(`/vehicle/media`, {
+              vehicle_dashboard: vehicleDashboardURL,
+              vehicle_front: vehicleFrontSideURL,
+              vehicle_left_side: vehicleLeftSideURL,
+              vehicle_back: vehicleBackSideURL,
+              vehicle_right_side: vehicleRightSideURL,
+              vehicle_video: vehicleVideoURL,
+              vehicle_id: userBasicInfo?.basic_info.vehicle.id,
+            });
 
             // TODO: update vehicle in basic info
             getAndSetUserBasicInfo();
@@ -281,10 +281,10 @@ const SubscriberKycStepsComponent = () => {
   useEffect(() => {
     setVehicleDetails((prev) => ({
       ...prev,
-      carName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
-      year: userBasicInfo?.basic_info.vehicle.vehicleYear || "",
-      carType: userBasicInfo?.basic_info.vehicle.vehicleType || "",
-      carColor: userBasicInfo?.basic_info.vehicle.vehicleColor || "",
+      vehicleName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
+      vehicleYear: userBasicInfo?.basic_info.vehicle.vehicleYear || "",
+      vehicleType: userBasicInfo?.basic_info.vehicle.vehicleType || "",
+      vehicleColor: userBasicInfo?.basic_info.vehicle.vehicleColor || "",
       plateNumber: userBasicInfo?.basic_info.vehicle.plateNumber || "",
       engineNumber: userBasicInfo?.basic_info.vehicle.engineNumber || "",
       chassisNumber: userBasicInfo?.basic_info.vehicle.chasisNumber || "",

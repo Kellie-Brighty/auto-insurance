@@ -5,10 +5,10 @@ import Image from "next/image";
 import React from "react";
 
 export interface VehicleDetails {
-  carName: string;
-  year: string;
-  carType: string;
-  carColor: string;
+  vehicleName: string;
+  vehicleYear: string;
+  vehicleType: string;
+  vehicleColor: string;
   plateNumber: string;
   engineNumber: string;
   chassisNumber: string;
@@ -51,14 +51,24 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVehicleDetails((prev) => ({
-      ...prev,
-      vehicleMedia: {
-        ...prev.vehicleMedia,
-        [e.target.name]: e.target.files?.[0],
-      },
-    }));
-    console.log(e.target.files?.[0]);
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVehicleDetails((prev) => ({
+          ...prev,
+          vehicleMedia: {
+            ...prev.vehicleMedia,
+            [e.target.name]: file,
+          },
+          vehicleMediaURLs: {
+            ...prev.vehicleMediaURLs,
+            [e.target.name]: reader.result as string,
+          },
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -71,31 +81,31 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
         <div className={"p-6 grid grid-cols-12 gap-3"}>
           <div className={"col-span-12 lg:col-span-12"}>
             <FormInputComponent
-              name={"carName"}
+              name={"vehicleName"}
               required={true}
               label={"Which car do you own?"}
-              defaultValue={vehicleDetails.carName}
+              defaultValue={vehicleDetails.vehicleName}
               onChange={handleChange}
             />
           </div>
 
           <div className={"col-span-12 lg:col-span-4"}>
             <FormInputComponent
-              type={"year"}
-              name={"year"}
+              type={"vehicleYear"}
+              name={"vehicleYear"}
               required={true}
               label={"Year"}
-              defaultValue={vehicleDetails.year}
+              defaultValue={vehicleDetails.vehicleYear}
               onChange={handleChange}
             />
           </div>
 
           <div className={"col-span-12 lg:col-span-4"}>
             <FormSelectComponent
-              name={"carType"}
+              name={"vehicleType"}
               required={true}
               label={"Vehicle Type"}
-              defaultValue={vehicleDetails.carType}
+              defaultValue={vehicleDetails.vehicleType}
               onChange={handleChange}
             >
               <option>Toyota</option>
@@ -106,10 +116,10 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
 
           <div className={"col-span-12 lg:col-span-4"}>
             <FormSelectComponent
-              name={"carColor"}
+              name={"vehicleColor"}
               required={true}
               label={"Vehicle Color"}
-              defaultValue={vehicleDetails.carColor}
+              defaultValue={vehicleDetails.vehicleColor}
               onChange={handleChange}
             >
               <option>Black</option>
@@ -197,28 +207,28 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
               <div className={"col-span-12 flex flex-col gap-1"}>
                 <span className={"text-sm text-gray-dark"}>Car Name</span>
                 <span className={"text-2xl font-grotesk font-bold"}>
-                  {vehicleDetails.carName || "NA"}
+                  {vehicleDetails.vehicleName || "NA"}
                 </span>
               </div>
 
               <div className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}>
                 <span className={"text-sm text-gray-dark"}>Year</span>
                 <span className={"font-grotesk font-bold"}>
-                  {vehicleDetails.year || "NA"}
+                  {vehicleDetails.vehicleYear || "NA"}
                 </span>
               </div>
 
               <div className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}>
                 <span className={"text-sm text-gray-dark"}>Vehicle Type</span>
                 <span className={"font-grotesk font-bold"}>
-                  {vehicleDetails.carType || "NA"}
+                  {vehicleDetails.vehicleType || "NA"}
                 </span>
               </div>
 
               <div className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}>
                 <span className={"text-sm text-gray-dark"}>Vehicle Color</span>
                 <span className={"font-grotesk font-bold"}>
-                  {vehicleDetails.carColor || "NA"}
+                  {vehicleDetails.vehicleColor || "NA"}
                 </span>
               </div>
 
@@ -392,8 +402,8 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
               <div className={"col-span-12 flex flex-col gap-1"}>
                 <span className={"text-sm text-gray-dark"}>File Name</span>
                 <span className={"font-grotesk font-bold"}>
-                  {vehicleDetails.carName
-                    ? `${vehicleDetails.carName}.mp4`
+                  {vehicleDetails.vehicleMedia.video
+                    ? `${vehicleDetails.vehicleMedia.video.name}`
                     : "NA"}
                 </span>
               </div>
