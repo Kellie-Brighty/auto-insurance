@@ -10,7 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect } from "react";
 
 const links = [
   {
@@ -78,6 +78,14 @@ const AgentLayout: React.FC<AgentLayoutProps> = ({
   children,
 }) => {
   const router = useRouter();
+
+  useEffect(() => {
+    const userType = localStorage.getItem("UserState");
+
+    if (userType !== "Agent") {
+      router.push("/auth/sign-in");
+    }
+  }, []);
 
   return (
     <div className={"w-full h-screen hidden lg:flex bg-background"}>

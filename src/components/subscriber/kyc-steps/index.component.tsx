@@ -1,16 +1,78 @@
-import SubscriberLayout from "@/layouts/subscriber/index.layout";
-import StepsComponent, { Step } from "@/common/steps/index.component";
-import { useEffect, useMemo, useState } from "react";
-import FormInputComponent from "@/common/form-input/index.component";
-import FormSelectComponent from "@/common/form-select/index.component";
-import CaptureImageComponent from "@/common/capture-image/index.component";
+import PaymentDetailsComponent from "@/common/app/kyc-steps/payment-details";
+import PersonalDetailsComponent, {
+  PersonalDetails,
+} from "@/common/app/kyc-steps/personal-details";
+import VehicleDetailsComponent, {
+  VehicleDetails,
+} from "@/common/app/kyc-steps/vehicle-details";
 import ButtonComponent from "@/common/button/index.component";
-import FormFileInputComponent from "@/common/form-file-input/index.component";
-import { TruckIcon } from "@heroicons/react/24/outline";
+import StepsComponent, { Step } from "@/common/steps/index.component";
+import useUserBasicInfo from "@/hooks/useUserBasicInfo";
+import SubscriberLayout from "@/layouts/subscriber/index.layout";
+import uploadBase64ImageToFirebaseStorage from "@/utils/firebase/uploadBase64ImageToFBStorage";
+import uploadFileToFirebaseStorage from "@/utils/firebase/uploadFileToFirebaseStorage";
+import { uuidv4 } from "@firebase/util";
+import React, { useEffect, useState } from "react";
+import api from "../../../../services/Api";
 
 const SubscriberKycStepsComponent = () => {
+  const { userBasicInfo, getAndSetUserBasicInfo } = useUserBasicInfo();
+
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    homeAddress: "",
+    modeOfIdentification: "",
+    idCardFront: "",
+    idCardBack: "",
+  });
+
+  const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
+    vehicleName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
+    vehicleYear: userBasicInfo?.basic_info.vehicle.vehicleYear || "",
+    vehicleType: userBasicInfo?.basic_info.vehicle.vehicleType || "",
+    vehicleColor: userBasicInfo?.basic_info.vehicle.vehicleColor || "",
+    plateNumber: userBasicInfo?.basic_info.vehicle.plateNumber || "",
+    engineNumber: userBasicInfo?.basic_info.vehicle.engineNumber || "",
+    chassisNumber: userBasicInfo?.basic_info.vehicle.chasisNumber || "",
+    vehicleMedia: {
+      dashboard: null,
+      frontSide: null,
+      leftSide: null,
+      backSide: null,
+      rightSide: null,
+      video: null,
+    },
+    vehicleMediaURLs: {
+      dashboard: null,
+      frontSide: null,
+      leftSide: null,
+      backSide: null,
+      rightSide: null,
+      video: null,
+    },
+  });
+
+  const fetchKycStatus = async () => {
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (autoFlexUserDataString) {
+      const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+      const kycStatusData = await api.get(
+        `/subscriber/kyc-status?user_id=${autoFlexUserData.id}`
+      );
+
+      console.log("kycStata-==", kycStatusData);
+    }
+
+    // console.log("user basic info:::", userBasicInfo && userBasicInfo);
+    // TODO: set kyc status to a state
+  };
 
   const handlePrevStep = () => {
     if (stepIndex) {
@@ -20,572 +82,170 @@ const SubscriberKycStepsComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "pending" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex - 1);
     }
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (stepIndex) {
+      switch (stepIndex) {
+        case 3:
+          console.log(personalDetails);
+          setLoading(true);
+
+          try {
+            await api.put(
+              `/subscriber/${userBasicInfo?.basic_info.vehicle.user_id}`,
+              { ...personalDetails, idCardFront: "", idCardBack: "" }
+            );
+
+            const idCardFrontURL = await uploadBase64ImageToFirebaseStorage(
+              personalDetails.idCardFront,
+              `${uuidv4()}.png`
+            );
+
+            const idCardBackURL = await uploadBase64ImageToFirebaseStorage(
+              personalDetails.idCardBack,
+              `${uuidv4()}.png`
+            );
+
+            // TODO: add subscriber ID card upload
+            await api.post(`/subscriber/id-card`, {
+              id_front: idCardFrontURL,
+              id_back: idCardBackURL,
+              user_id: userBasicInfo?.basic_info.vehicle.user_id,
+            });
+
+            // TODO: update user data in local storage
+            const autoFlexUserData = await api.get(
+              `/subscriber/${userBasicInfo?.basic_info.vehicle.user_id}`
+            );
+
+            if (autoFlexUserData.data.data) {
+              localStorage.setItem(
+                "AutoFlexUserData",
+                JSON.stringify(autoFlexUserData.data.data.subscriber)
+              );
+            }
+
+            // TODO: update the kyc status
+            await api.put(
+              `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+              {
+                personal_info_complete: true,
+              }
+            );
+
+            await fetchKycStatus();
+            setLoading(false);
+          } catch (error) {
+            console.log("Something went wrong: ", error);
+            setLoading(false);
+            return;
+          }
+          break;
+        case 4:
+          console.log(vehicleDetails);
+
+          setLoading(true);
+
+          try {
+            await api.put(`/vehicle/${userBasicInfo?.basic_info.vehicle.id}`, {
+              ...vehicleDetails,
+              chasisNumber: vehicleDetails.chassisNumber,
+              vehicleMedia: {},
+              vehicleMediaURLs: {},
+            });
+
+            const vehicleDashboardURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.dashboard,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.dashboard?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleFrontSideURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.frontSide,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.frontSide?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleLeftSideURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.leftSide,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.leftSide?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleBackSideURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.backSide,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.backSide?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleRightSideURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.rightSide,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.rightSide?.name.split(
+                "."
+              )[1]}`
+            );
+            const vehicleVideoURL = await uploadFileToFirebaseStorage(
+              vehicleDetails.vehicleMedia.video,
+              `${uuidv4()}.${vehicleDetails.vehicleMedia.video?.name.split(
+                "."
+              )[1]}`
+            );
+
+            // TODO: add vehicle media upload
+            await api.post(`/vehicle/media`, {
+              vehicle_dashboard: vehicleDashboardURL,
+              vehicle_front: vehicleFrontSideURL,
+              vehicle_left_side: vehicleLeftSideURL,
+              vehicle_back: vehicleBackSideURL,
+              vehicle_right_side: vehicleRightSideURL,
+              vehicle_video: vehicleVideoURL,
+              vehicle_id: userBasicInfo?.basic_info.vehicle.id,
+            });
+
+            // TODO: update vehicle in basic info
+            getAndSetUserBasicInfo();
+
+            // TODO: update the kyc status
+            // await api.put(
+            //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+            //   {
+            //     vehicle_info_complete: true,
+            //   }
+            // );
+            setLoading(false);
+            await fetchKycStatus();
+          } catch (error) {
+            console.log("Something went wrong: ", error);
+            setLoading(false);
+            return;
+          }
+          break;
+      }
+
       setSteps((prev) =>
         prev.map((step) =>
           step.stepIndex === stepIndex + 1
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "completed" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex + 1);
     }
   };
 
-  const PersonalDetailsComponent = useMemo(
-    () =>
-      function PersonalDetailsComponent() {
-        return (
-          <div className={"w-full bg-white rounded-md"}>
-            <div className={"p-6 border-b border-gray-main"}>
-              <h3 className={"text-lg font-medium"}>Personal Details</h3>
-            </div>
-
-            <div className={"p-6 grid grid-cols-12 gap-3"}>
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  name={"firstName"}
-                  required={true}
-                  label={"First Name"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  name={"middleName"}
-                  required={true}
-                  label={"Middle Name"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  name={"lastName"}
-                  required={true}
-                  label={"Last Name"}
-                />
-              </div>
-
-              <div className={"col-span-12"}>
-                <FormInputComponent
-                  name={"homeAddress"}
-                  required={true}
-                  label={"Home Address"}
-                />
-              </div>
-
-              <div className={"col-span-12"}>
-                <FormSelectComponent
-                  name={"modeOfIdentification"}
-                  required={true}
-                  label={"Mode Of Identification"}
-                >
-                  <option>National Identification Card</option>
-                  <option>National Identification Card</option>
-                  <option>National Identification Card</option>
-                </FormSelectComponent>
-              </div>
-
-              <div className={"col-span-12 lg:col-span-6"}>
-                <CaptureImageComponent
-                  label={"Front Side"}
-                  onCaptureImage={() => {}}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-6"}>
-                <CaptureImageComponent
-                  label={"Back Side"}
-                  onCaptureImage={() => {}}
-                />
-              </div>
-            </div>
-          </div>
-        );
-      },
-    [],
-  );
-
-  const VehicleDetailsComponent = useMemo(
-    () =>
-      function VehicleDetailsComponent() {
-        return (
-          <>
-            <div className={"w-full bg-white rounded-md"}>
-              <div className={"p-6 border-b border-gray-main"}>
-                <h3 className={"text-lg font-medium"}>Vehicle Details</h3>
-              </div>
-
-              <div className={"p-6 grid grid-cols-12 gap-3"}>
-                <div className={"col-span-12 lg:col-span-12"}>
-                  <FormInputComponent
-                    name={"carName"}
-                    required={true}
-                    label={"Which car do you own?"}
-                  />
-                </div>
-
-                <div className={"col-span-12 lg:col-span-4"}>
-                  <FormInputComponent
-                    type={"year"}
-                    name={"year"}
-                    required={true}
-                    label={"Year"}
-                  />
-                </div>
-
-                <div className={"col-span-12 lg:col-span-4"}>
-                  <FormSelectComponent
-                    name={"carType"}
-                    required={true}
-                    label={"Vehicle Type"}
-                  >
-                    <option>Toyota</option>
-                    <option>Toyota</option>
-                    <option>Toyota</option>
-                  </FormSelectComponent>
-                </div>
-
-                <div className={"col-span-12 lg:col-span-4"}>
-                  <FormSelectComponent
-                    name={"carColor"}
-                    required={true}
-                    label={"Vehicle Color"}
-                  >
-                    <option>Black</option>
-                    <option>Black</option>
-                    <option>Black</option>
-                  </FormSelectComponent>
-                </div>
-
-                <div className={"col-span-12 lg:col-span-4"}>
-                  <FormInputComponent
-                    name={"plateNumber"}
-                    required={true}
-                    label={"Plate Number"}
-                  />
-                </div>
-
-                <div className={"col-span-12 lg:col-span-4"}>
-                  <FormInputComponent
-                    name={"engineNumber"}
-                    required={true}
-                    label={"Engine Number"}
-                  />
-                </div>
-
-                <div className={"col-span-12 lg:col-span-4"}>
-                  <FormInputComponent
-                    name={"chassisNumber"}
-                    required={true}
-                    label={"Chassis Number"}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className={"w-full bg-white rounded-md"}>
-              <div className={"p-6 border-b border-gray-main"}>
-                <h3 className={"text-lg font-medium"}>Upload Vehicle Images</h3>
-              </div>
-
-              <div className={"p-6 grid grid-cols-12 items-start gap-3"}>
-                <div
-                  className={
-                    "col-span-12 xl:col-span-6 p-6 space-y-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <FormFileInputComponent label={"Vehicle Dashboard"} />
-                  <FormFileInputComponent label={"Vehicle Front Side"} />
-                  <FormFileInputComponent label={"Vehicle Left Side"} />
-                  <FormFileInputComponent label={"Vehicle Back Side"} />
-                  <FormFileInputComponent label={"Vehicle Right Side"} />
-                </div>
-
-                <div className={"col-span-12 xl:col-span-6 space-y-3"}>
-                  <div
-                    className={
-                      "w-full p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                    }
-                  >
-                    <div className={"col-span-12 flex flex-col gap-1"}>
-                      <span className={"text-sm text-gray-dark"}>Car Name</span>
-                      <span className={"text-2xl font-grotesk font-bold"}>
-                        2023 Toyota Avalon Xl
-                      </span>
-                    </div>
-
-                    <div
-                      className={
-                        "col-span-12 lg:col-span-4 flex flex-col gap-1"
-                      }
-                    >
-                      <span className={"text-sm text-gray-dark"}>Year</span>
-                      <span className={"font-grotesk font-bold"}>2023</span>
-                    </div>
-
-                    <div
-                      className={
-                        "col-span-12 lg:col-span-4 flex flex-col gap-1"
-                      }
-                    >
-                      <span className={"text-sm text-gray-dark"}>
-                        Vehicle Type
-                      </span>
-                      <span className={"font-grotesk font-bold"}>Toyota</span>
-                    </div>
-
-                    <div
-                      className={
-                        "col-span-12 lg:col-span-4 flex flex-col gap-1"
-                      }
-                    >
-                      <span className={"text-sm text-gray-dark"}>
-                        Vehicle Color
-                      </span>
-                      <span className={"font-grotesk font-bold"}>Black</span>
-                    </div>
-
-                    <div
-                      className={
-                        "col-span-12 lg:col-span-4 flex flex-col gap-1"
-                      }
-                    >
-                      <span className={"text-sm text-gray-dark"}>
-                        Plate Number
-                      </span>
-                      <span className={"font-grotesk font-bold"}>KJA193AA</span>
-                    </div>
-
-                    <div
-                      className={
-                        "col-span-12 lg:col-span-4 flex flex-col gap-1"
-                      }
-                    >
-                      <span className={"text-sm text-gray-dark"}>
-                        Engine Number
-                      </span>
-                      <span className={"font-grotesk font-bold"}>
-                        52WVC10338
-                      </span>
-                    </div>
-
-                    <div
-                      className={
-                        "col-span-12 lg:col-span-4 flex flex-col gap-1"
-                      }
-                    >
-                      <span className={"text-sm text-gray-dark"}>
-                        Chassis Number
-                      </span>
-                      <span className={"font-grotesk font-bold"}>
-                        JYA2UJE0X2A050036
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    className={
-                      "w-full p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                    }
-                  >
-                    <div
-                      className={
-                        "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                      }
-                    />
-
-                    <div
-                      className={
-                        "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                      }
-                    />
-
-                    <div
-                      className={
-                        "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                      }
-                    />
-
-                    <div
-                      className={
-                        "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                      }
-                    />
-
-                    <div
-                      className={
-                        "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className={"w-full bg-white rounded-md"}>
-              <div className={"p-6 border-b border-gray-main"}>
-                <h3 className={"text-lg font-medium"}>Upload Vehicle Vidoe</h3>
-              </div>
-
-              <div className={"p-6 grid grid-cols-12 items-start gap-3"}>
-                <div
-                  className={
-                    "col-span-12 xl:col-span-6 p-6 space-y-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <FormFileInputComponent label={"Vehicle Video"} />
-                </div>
-
-                <div
-                  className={
-                    "col-span-12 xl:col-span-6 p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <div
-                    className={
-                      "col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div className={"col-span-9 space-y-3"}>
-                    <div className={"col-span-12 flex flex-col gap-1"}>
-                      <span className={"text-sm text-gray-dark"}>
-                        Video URL
-                      </span>
-                      <span className={"text-primary truncate"}>
-                        https://www.pexels.com/search/videos/car/
-                      </span>
-                    </div>
-
-                    <div className={"col-span-12 flex flex-col gap-1"}>
-                      <span className={"text-sm text-gray-dark"}>
-                        File Name
-                      </span>
-                      <span className={"font-grotesk font-bold"}>
-                        Toyota.mp4
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        );
-      },
-    [],
-  );
-
-  const PaymentDetailsComponent = useMemo(
-    () =>
-      function PaymentDetailsComponent() {
-        return (
-          <div className={"w-full bg-white rounded-md"}>
-            <div className={"p-6 border-b border-gray-main"}>
-              <h3 className={"text-lg font-medium"}>Payment Details</h3>
-            </div>
-
-            <div className={"p-6 grid grid-cols-12 gap-3"}>
-              <div
-                className={
-                  "relative col-span-12 xl:col-span-6 p-6 space-y-6 text-white bg-secondary rounded-md"
-                }
-              >
-                <div
-                  className={
-                    "absolute top-0 left-0 -translate-y-1/4 -translate-x-1/4 w-32 h-48 rounded-full bg-white opacity-25 blur-2xl"
-                  }
-                />
-
-                <div className={"space-y-3"}>
-                  <div className={"flex flex-col"}>
-                    <span>Selected Plan</span>
-                    <span className={"text-2xl font-grotesk font-bold"}>
-                      Yearly at 5.0% of the car worth.
-                    </span>
-                  </div>
-
-                  <div>
-                    <span>
-                      Suitable for car lovers seeking all rounded protection,
-                      this plan covers:
-                    </span>
-                  </div>
-                </div>
-
-                <div className={"w-full h-0.5 bg-white bg-opacity-75"} />
-
-                <div className={"grid grid-cols-12 gap-3"}>
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-4 flex items-center gap-2"
-                    }
-                  >
-                    <TruckIcon className={"w-5 h-5"} />
-                    <span className={"text-sm text-white opacity-75 truncate"}>
-                      Accident
-                    </span>
-                  </div>
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-4 flex items-center gap-2"
-                    }
-                  >
-                    <TruckIcon className={"w-5 h-5"} />
-                    <span className={"text-sm text-white opacity-75 truncate"}>
-                      Third Party Liability
-                    </span>
-                  </div>
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-4 flex items-center gap-2"
-                    }
-                  >
-                    <TruckIcon className={"w-5 h-5"} />
-                    <span className={"text-sm text-white opacity-75 truncate"}>
-                      Personal Cover
-                    </span>
-                  </div>
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-4 flex items-center gap-2"
-                    }
-                  >
-                    <TruckIcon className={"w-5 h-5"} />
-                    <span className={"text-sm text-white opacity-75 truncate"}>
-                      Theft
-                    </span>
-                  </div>
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-4 flex items-center gap-2"
-                    }
-                  >
-                    <TruckIcon className={"w-5 h-5"} />
-                    <span className={"text-sm text-white opacity-75 truncate"}>
-                      Natural Calamities
-                    </span>
-                  </div>
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-4 flex items-center gap-2"
-                    }
-                  >
-                    <TruckIcon className={"w-5 h-5"} />
-                    <span className={"text-sm text-white opacity-75 truncate"}>
-                      Add-on Choice
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  className={
-                    "absolute bottom-0 right-0 translate-y-1/4 translate-x-1/4 w-32 h-48 rounded-full bg-white opacity-25 blur-2xl"
-                  }
-                />
-              </div>
-
-              <div
-                className={
-                  "col-span-12 xl:col-span-6 p-6 space-y-6 border border-gray-main rounded-md"
-                }
-              >
-                <span className={"text-2xl font-grotesk font-bold"}>
-                  Single Year Comprehensive Insurance Summary:
-                </span>
-
-                <div className={"space-y-3"}>
-                  <div className={"grid grid-cols-12 items-center gap-2"}>
-                    <span className={"col-span-9 text-sm text-gray-dark"}>
-                      Damage due to natural calamities - Fire, Earthquake,
-                      Cyclone, Flood, etc...
-                    </span>
-
-                    <span
-                      className={"col-span-3 text-sm font-medium text-right"}
-                    >
-                      ₦1,200,000
-                    </span>
-                  </div>
-
-                  <div className={"grid grid-cols-12 items-center gap-2"}>
-                    <span className={"col-span-9 text-sm text-gray-dark"}>
-                      Damage due to events
-                    </span>
-
-                    <span
-                      className={"col-span-3 text-sm font-medium text-right"}
-                    >
-                      ₦1,200,000
-                    </span>
-                  </div>
-
-                  <div className={"grid grid-cols-12 items-center gap-2"}>
-                    <span className={"col-span-9 text-sm text-gray-dark"}>
-                      Damage to third party vehicle
-                    </span>
-
-                    <span
-                      className={"col-span-3 text-sm font-medium text-right"}
-                    >
-                      ₦1,200,000
-                    </span>
-                  </div>
-
-                  <div className={"w-full h-0.5 bg-gray-main"} />
-
-                  <div className={"grid grid-cols-12 gap-2"}>
-                    <span className={"col-span-9 text-gray-dark"}>Total</span>
-
-                    <span className={"col-span-3 font-medium text-right"}>
-                      ₦1,200,000
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      },
-    [],
-  );
-
-  const StepSwitch = useMemo(
-    () =>
-      function StepSwitch() {
-        switch (stepIndex) {
-          case 3:
-            return <PersonalDetailsComponent />;
-          case 4:
-            return <VehicleDetailsComponent />;
-          case 5:
-            return <PaymentDetailsComponent />;
-        }
-      },
-    [
-      stepIndex,
-      PersonalDetailsComponent,
-      VehicleDetailsComponent,
-      PaymentDetailsComponent,
-    ],
-  );
+  useEffect(() => {
+    fetchKycStatus();
+  }, []);
 
   useEffect(() => {
     setSteps([
@@ -616,7 +276,20 @@ const SubscriberKycStepsComponent = () => {
       },
     ]);
     setStepIndex(3);
-  }, []);
+  }, []); // TODO: add a kyc status dependency and update the steps based on the kyc status
+
+  useEffect(() => {
+    setVehicleDetails((prev) => ({
+      ...prev,
+      vehicleName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
+      vehicleYear: userBasicInfo?.basic_info.vehicle.vehicleYear || "",
+      vehicleType: userBasicInfo?.basic_info.vehicle.vehicleType || "",
+      vehicleColor: userBasicInfo?.basic_info.vehicle.vehicleColor || "",
+      plateNumber: userBasicInfo?.basic_info.vehicle.plateNumber || "",
+      engineNumber: userBasicInfo?.basic_info.vehicle.engineNumber || "",
+      chassisNumber: userBasicInfo?.basic_info.vehicle.chasisNumber || "",
+    }));
+  }, [userBasicInfo]);
 
   return (
     <SubscriberLayout
@@ -625,7 +298,24 @@ const SubscriberKycStepsComponent = () => {
     >
       <div className={"space-y-8"}>
         <StepsComponent steps={steps} />
-        <StepSwitch />
+
+        {stepIndex === 3 ? (
+          <PersonalDetailsComponent
+            personalDetails={personalDetails}
+            setPersonalDetails={setPersonalDetails}
+          />
+        ) : stepIndex === 4 ? (
+          <VehicleDetailsComponent
+            vehicleDetails={vehicleDetails}
+            setVehicleDetails={setVehicleDetails}
+          />
+        ) : stepIndex === 5 ? (
+          <PaymentDetailsComponent
+            totalAmount={userBasicInfo?.basic_info.policy.policy_amount || 0}
+          />
+        ) : (
+          <></>
+        )}
 
         <div className={"flex items-center justify-end gap-3"}>
           <ButtonComponent
@@ -640,7 +330,7 @@ const SubscriberKycStepsComponent = () => {
             variant={"filled"}
             onClick={handleNextStep}
           >
-            Next Step
+            {loading ? "Wait..." : "Next Step"}
           </ButtonComponent>
         </div>
       </div>

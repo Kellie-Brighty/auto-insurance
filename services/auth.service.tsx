@@ -99,5 +99,3 @@ const authService = {
 };
 
 export default authService;
-
-const dinner = {};

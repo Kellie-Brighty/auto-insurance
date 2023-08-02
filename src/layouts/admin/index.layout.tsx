@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect } from "react";
 
 const links = [
   {
@@ -78,6 +78,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   children,
 }) => {
   const router = useRouter();
+
+  useEffect(() => {
+    const userType = localStorage.getItem("UserState");
+
+    if (userType !== "Admin") {
+      router.push("/auth/sign-in");
+    }
+  }, []);
 
   return (
     <div className={"w-full h-screen hidden lg:flex bg-background"}>

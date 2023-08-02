@@ -11,70 +11,67 @@ import { useEffect, useState } from "react";
 import SubscriberVehicleCardComponent from "@/components/subscriber/vehicles/vehicle-card";
 import PaginationComponent from "@/common/pagination/index.component";
 import { useRouter } from "next/router";
+import subscriberService from "../../../../services/subscriber.service";
+import useUserBasicInfo from "@/hooks/useUserBasicInfo";
 
 // Todo: replace the interface object with actual vehicle object
 interface Vehicle {
+  chasisNumber: string;
+  createdAt: string;
+  deletedAt: null;
+  engineNumber: string;
   id: number;
-  carName: string;
   plateNumber: string;
-  registrationNumber: string;
-  color: string;
-  premium: number;
+  updatedAt: string;
+  user_id: number;
+  vehicleColor: string;
+  vehicleName: string;
+  vehicleType: null;
+  vehicleWorth: number;
+  vehicleYear: string;
+  VehicleMedia: {
+    createdAt: string;
+    deletedAt: null;
+    id: number;
+    updatedAt: string;
+    vehicle_back: null;
+    vehicle_dashboard: null;
+    vehicle_front: null;
+    vehicle_id: number;
+    vehicle_left_side: null;
+    vehicle_right_side: null;
+    vehicle_video: null;
+  };
 }
 
 const SubscriberVehiclesComponent = () => {
+  const { userBasicInfo } = useUserBasicInfo();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
   const [vehiclesTotalPages, setVehiclesTotalPages] = useState(0);
   const [vehiclesCurrentPage, setVehiclesCurrentPage] = useState(0);
   const router = useRouter();
+  const { GetSubscriberVehicles } = subscriberService;
+
+  const getVehiclesAction = async () => {
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (autoFlexUserDataString) {
+      const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+      try {
+        const res = await GetSubscriberVehicles(autoFlexUserData.id);
+        console.log(res.data.data);
+        setVehicles(res.data.data.vehicle);
+      } catch (err: any) {
+        console.log(err.message);
+      }
+    }
+  };
 
   useEffect(() => {
-    setVehicles([
-      {
-        id: 1,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-      {
-        id: 2,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-      {
-        id: 3,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-      {
-        id: 4,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-      {
-        id: 5,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-    ]);
-
     setVehiclesTotalPages(50);
     setVehiclesCurrentPage(1);
+    getVehiclesAction();
   }, []);
 
   return (
@@ -122,11 +119,11 @@ const SubscriberVehiclesComponent = () => {
             {vehicles.map((vehicle) => (
               <SubscriberVehicleCardComponent
                 key={vehicle.id}
-                carName={vehicle.carName}
+                carName={vehicle.vehicleName}
                 plateNumber={vehicle.plateNumber}
-                registrationName={vehicle.registrationNumber}
-                color={vehicle.color}
-                premium={vehicle.premium}
+                registrationName={vehicle.vehicleName}
+                color={vehicle.vehicleColor}
+                premium={vehicle.vehicleWorth}
               />
             ))}
 

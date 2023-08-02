@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 
 interface GlobalContextInterface {
   estimateModal: boolean;
@@ -16,8 +16,18 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [estimateModal, setEstimateModal] = useState(false);
+
+  // useEffect(() => {
+  //   console.log("Sub Basic Info in context", subscriberBasicInfo);
+  // }, [subscriberBasicInfo]);
+
   return (
-    <GlobalContext.Provider value={{ estimateModal, setEstimateModal }}>
+    <GlobalContext.Provider
+      value={{
+        estimateModal,
+        setEstimateModal,
+      }}
+    >
       {children}
     </GlobalContext.Provider>
   );

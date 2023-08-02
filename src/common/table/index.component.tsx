@@ -1,5 +1,6 @@
 import React from "react";
 import PaginationComponent from "@/common/pagination/index.component";
+import Image from "next/image";
 
 export interface TableHeader {
   id: number;
@@ -15,6 +16,26 @@ export interface TableRow {
   data: TableRowData;
 }
 
+interface Agent {
+  branch: string;
+  createdAt: string;
+  dateofbirth: string;
+  deletedAt: null;
+  email: string;
+  emailVerified: false;
+  firstname: string;
+  gender: string;
+  homeAddress: string;
+  id: number;
+  id_type: string;
+  lastname: string;
+  middlename: string;
+  phoneNumber: string;
+  role: string;
+  status: string;
+  updatedAt: string;
+}
+
 interface TableComponentProps {
   headers: TableHeader[];
   rows: TableRow[];
@@ -22,6 +43,13 @@ interface TableComponentProps {
   totalPages: number;
   currentPage: number;
   onPageChange: (page: number) => void;
+  selectedAgent?: Agent | null;
+  setSelectedAgent?: React.Dispatch<React.SetStateAction<Agent | null>>;
+  setViewAgentModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  isAgentTableDialog?: boolean;
+  setApproveAgentModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  setRejectAgentModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  setDeleteAgentModal?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const TableComponent: React.FC<TableComponentProps> = ({
@@ -31,6 +59,13 @@ const TableComponent: React.FC<TableComponentProps> = ({
   totalPages,
   currentPage,
   onPageChange,
+  selectedAgent,
+  setSelectedAgent,
+  setViewAgentModal,
+  isAgentTableDialog,
+  setApproveAgentModal,
+  setRejectAgentModal,
+  setDeleteAgentModal,
 }) => {
   return (
     <div className={"space-y-3 bg-white rounded-md"}>
@@ -53,19 +88,90 @@ const TableComponent: React.FC<TableComponentProps> = ({
             </tr>
           </thead>
 
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id} className={"border-b-2 border-gray-light"}>
-                {headers.map((header) => (
-                  <td
-                    key={header.id}
-                    className={`py-6 px-6 text-left font-grotesk font-bold whitespace-nowrap`}
+          <tbody className={`relative`}>
+            <>
+              {rows.map((row) => (
+                <tr key={row.id} className={"border-b-2 border-gray-light"}>
+                  {headers.map((header) => (
+                    <>
+                      <td
+                        key={header.id}
+                        className={`py-6 px-6 text-left font-grotesk font-bold whitespace-nowrap relative`}
+                      >
+                        {row.data[header.id?.toString()]}
+                      </td>
+                    </>
+                  ))}
+                </tr>
+              ))}
+              {isAgentTableDialog && (
+                <div
+                  className={`absolute right-[80px] top-4`}
+                  // onClick={() => setSelectedAgent(null)}
+                >
+                  <div
+                    className={`bg-white p-4 rounded-md shadow-md w-[195px] space-y-5`}
                   >
-                    {row.data[header.id?.toString()]}
-                  </td>
-                ))}
-              </tr>
-            ))}
+                    <div
+                      className={`flex items-center space-x-4 cursor-pointer`}
+                      onClick={() => {
+                        setViewAgentModal && setViewAgentModal(true);
+                      }}
+                    >
+                      <Image
+                        src={"/assets/admin/view-agent.svg"}
+                        alt="view-agents"
+                        width={17}
+                        height={17}
+                      />
+                      <p>View Agent</p>
+                    </div>
+                    <div
+                      className={`flex items-center space-x-4 cursor-pointer`}
+                      onClick={() => {
+                        setApproveAgentModal && setApproveAgentModal(true);
+                      }}
+                    >
+                      <Image
+                        src={"/assets/admin/approve-agent.svg"}
+                        alt="view-agents"
+                        width={17}
+                        height={17}
+                      />
+                      <p>Approve Agent</p>
+                    </div>
+                    <div
+                      className={`flex items-center space-x-4 cursor-pointer`}
+                      onClick={() =>
+                        setRejectAgentModal && setRejectAgentModal(true)
+                      }
+                    >
+                      <Image
+                        src={"/assets/admin/reject-agent.svg"}
+                        alt="view-agents"
+                        width={17}
+                        height={17}
+                      />
+                      <p>Reject Agent</p>
+                    </div>
+                    <div
+                      className={`flex items-center space-x-4 cursor-pointer`}
+                      onClick={() =>
+                        setDeleteAgentModal && setDeleteAgentModal(true)
+                      }
+                    >
+                      <Image
+                        src={"/assets/admin/delete-agent.svg"}
+                        alt="view-agents"
+                        width={17}
+                        height={17}
+                      />
+                      <p>Delete Agent</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           </tbody>
         </table>
       </div>

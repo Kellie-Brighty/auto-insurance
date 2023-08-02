@@ -37,6 +37,7 @@ const SignInComponent = () => {
           console.log(res.data);
           if (res.status === 200 || res.status === 201) {
             localStorage.setItem("AutoFlexUserToken", res.data.accessToken);
+            localStorage.setItem("AutoFlexUserData", JSON.stringify(res.data.data));
             const userole = res.data.data.role;
             if (userole) {
               router.push(`/${userole}/overview`);
@@ -48,6 +49,7 @@ const SignInComponent = () => {
           console.log(res.data);
           if (res.status === 200 || res.status === 201) {
             localStorage.setItem("AutoFlexUserToken", res.data.accessToken);
+            localStorage.setItem("AutoFlexUserData", JSON.stringify(res.data.data));
             const userole = res.data.data.role;
             if (userole) {
               router.push(`/${userole}/overview`);
@@ -59,6 +61,7 @@ const SignInComponent = () => {
           console.log(res.data);
           if (res.status === 200 || res.status === 201) {
             localStorage.setItem("AutoFlexUserToken", res.data.accessToken);
+            localStorage.setItem("AutoFlexUserData", JSON.stringify(res.data.data));
             const userole = res.data.data.role;
             if (userole) {
               router.push(`/${userole}/overview`);

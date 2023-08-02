@@ -9,7 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect } from "react";
 
 const links = [
   {
@@ -56,6 +56,14 @@ const SubscriberLayout: React.FC<SubscriberLayoutProps> = ({
   children,
 }) => {
   const router = useRouter();
+
+  useEffect(() => {
+    const userType = localStorage.getItem("UserState");
+
+    if (userType !== "Subscriber") {
+      router.push("/auth/sign-in");
+    }
+  }, []);
 
   return (
     <div className={"w-full h-screen hidden lg:flex bg-background"}>
