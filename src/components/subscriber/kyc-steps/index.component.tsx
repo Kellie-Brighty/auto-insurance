@@ -67,7 +67,7 @@ const SubscriberKycStepsComponent = () => {
         `/subscriber/kyc-status?user_id=${autoFlexUserData.id}`
       );
 
-      console.log("kycStatus:::", kycStatusData);
+      console.log("kycStata-==", kycStatusData);
     }
 
     // console.log("user basic info:::", userBasicInfo && userBasicInfo);
@@ -128,17 +128,17 @@ const SubscriberKycStepsComponent = () => {
             if (autoFlexUserData.data.data) {
               localStorage.setItem(
                 "AutoFlexUserData",
-                JSON.stringify(autoFlexUserData.data.data)
+                JSON.stringify(autoFlexUserData.data.data.subscriber)
               );
             }
 
             // TODO: update the kyc status
-            // await api.put(
-            //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
-            //   {
-            //     personal_info_complete: true,
-            //   }
-            // );
+            await api.put(
+              `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+              {
+                personal_info_complete: true,
+              }
+            );
 
             await fetchKycStatus();
             setLoading(false);
