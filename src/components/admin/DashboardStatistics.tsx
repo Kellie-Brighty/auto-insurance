@@ -5,16 +5,16 @@ interface DashboardStatisticsInterface {
   title?: string;
   firstBoxImageUrl: string;
   firstBoxTitle: string;
-  firstBoxPrice: string;
+  firstBoxPrice: number;
   secondBoxImageUrl: string;
   secondBoxTitle: string;
-  secondBoxPrice: string;
+  secondBoxPrice: number;
   thirdBoxImageUrl: string;
   thirdBoxTitle: string;
-  thirdBoxPrice: string;
+  thirdBoxPrice: number;
   fourthBoxImageUrl: string;
   fourthBoxTitle: string;
-  fourthBoxPrice: string;
+  fourthBoxPrice: number;
 }
 
 const DashboardStatistics = ({

@@ -1,7 +1,9 @@
 import AreaChartComponent from "@/common/charts/area";
 import DashboardStatistics from "@/components/admin/DashboardStatistics";
-import AdminLayout from "@/layouts/admin/index.layout";
-import React from "react";
+import AdminLayout, {
+  ManagementReportData,
+} from "@/layouts/admin/index.layout";
+import React, { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -87,6 +89,26 @@ const YTick: BaseAxisProps["tick"] = ({ x, y, payload }) => (
 );
 
 export default function AdminOverview() {
+  const [activePolices, setActivePolicies] = useState(0);
+  const [pendingPolicies, setPendingPolicies] = useState(0);
+  const [inactivePolicies, setInactivePolicies] = useState(0);
+  const [expiredPolicies, setExpiredPolices] = useState(0);
+  const fetchReport = () => {
+    const reportData = localStorage.getItem("ManagementReport");
+    let parsedData: ManagementReportData | null = null;
+    if (reportData) {
+      parsedData = JSON.parse(reportData) as ManagementReportData;
+      setActivePolicies(parsedData.active_policies);
+      setPendingPolicies(parsedData.pending_policies);
+      setInactivePolicies(parsedData.inactive_commission_amount);
+      setExpiredPolices(parsedData.expired_policies);
+    }
+  };
+
+  useEffect(() => {
+    fetchReport();
+  }, []);
+
   return (
     <AdminLayout
       title={"Welcome back Admin 👋"}
@@ -98,16 +120,16 @@ export default function AdminOverview() {
             title={"Dashboard Statistics"}
             firstBoxImageUrl={"/assets/admin/active-policies.png"}
             firstBoxTitle={"Active Policies"}
-            firstBoxPrice={"40,555"}
+            firstBoxPrice={activePolices}
             secondBoxImageUrl={"/assets/admin/active-renewals.png"}
             secondBoxTitle={"Awaiting Renewals"}
-            secondBoxPrice={"40,555"}
+            secondBoxPrice={pendingPolicies}
             thirdBoxImageUrl={"/assets/admin/deactivated-policies.png"}
             thirdBoxTitle={"Deactivated Policies"}
-            thirdBoxPrice={"40,555"}
+            thirdBoxPrice={inactivePolicies}
             fourthBoxImageUrl={"/assets/admin/expired-policies.png"}
             fourthBoxTitle={"Expired Policies"}
-            fourthBoxPrice={"40,555"}
+            fourthBoxPrice={expiredPolicies}
           />
         </div>
 

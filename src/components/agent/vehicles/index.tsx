@@ -11,15 +11,36 @@ import PaginationComponent from "@/common/pagination/index.component";
 import AgentLayout from "@/layouts/agent/index.layout";
 import AgentVehicleCardComponent from "@/components/agent/vehicles/vehicle-card";
 import { useRouter } from "next/router";
+import agentService from "../../../../services/agent.service";
 
 // Todo: replace the interface object with actual vehicle object
 interface Vehicle {
+  chasisNumber: string;
+  createdAt: string;
+  deletedAt: null;
+  engineNumber: string;
   id: number;
-  carName: string;
   plateNumber: string;
-  registrationNumber: string;
-  color: string;
-  premium: number;
+  updatedAt: string;
+  user_id: number;
+  vehicleColor: string;
+  vehicleName: string;
+  vehicleType: null;
+  vehicleWorth: number;
+  vehicleYear: string;
+  VehicleMedia: {
+    createdAt: string;
+    deletedAt: null;
+    id: number;
+    updatedAt: string;
+    vehicle_back: null;
+    vehicle_dashboard: null;
+    vehicle_front: null;
+    vehicle_id: number;
+    vehicle_left_side: null;
+    vehicle_right_side: null;
+    vehicle_video: null;
+  };
 }
 
 const AgentVehiclesComponent = () => {
@@ -28,53 +49,27 @@ const AgentVehiclesComponent = () => {
   const [vehiclesTotalPages, setVehiclesTotalPages] = useState(0);
   const [vehiclesCurrentPage, setVehiclesCurrentPage] = useState(0);
   const router = useRouter();
+  const { GetAgentVehicles } = agentService;
+
+  const getVehiclesAction = async () => {
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (autoFlexUserDataString) {
+      const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+      try {
+        const res = await GetAgentVehicles(autoFlexUserData.id);
+        console.log(res.data.data);
+        setVehicles(res.data.data.vehicle);
+      } catch (err: any) {
+        console.log(err.message);
+      }
+    }
+  };
 
   useEffect(() => {
-    setVehicles([
-      {
-        id: 1,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-      {
-        id: 2,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-      {
-        id: 3,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-      {
-        id: 4,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-      {
-        id: 5,
-        carName: "2005 Toyota Avalon Xl",
-        plateNumber: "EKY 773 DD",
-        registrationNumber: "Paulinus Offorzor",
-        color: "Red",
-        premium: 1625000,
-      },
-    ]);
-
     setVehiclesTotalPages(50);
     setVehiclesCurrentPage(1);
+    getVehiclesAction();
   }, []);
 
   return (
@@ -106,7 +101,7 @@ const AgentVehiclesComponent = () => {
           </div>
         </div>
 
-        {vehicles.length === 0 ? (
+        {!vehicles ? (
           <div
             className={
               "w-full h-96 p-6 flex flex-col items-center justify-center bg-white rounded-md"
@@ -119,14 +114,14 @@ const AgentVehiclesComponent = () => {
           </div>
         ) : (
           <div className={"grid grid-cols-12 gap-3"}>
-            {vehicles.map((vehicle) => (
+            {vehicles?.map((vehicle) => (
               <AgentVehicleCardComponent
                 key={vehicle.id}
-                carName={vehicle.carName}
+                carName={vehicle.vehicleName}
                 plateNumber={vehicle.plateNumber}
-                registrationName={vehicle.registrationNumber}
-                color={vehicle.color}
-                premium={vehicle.premium}
+                registrationName={vehicle.vehicleName}
+                color={vehicle.vehicleColor}
+                premium={vehicle.vehicleWorth}
               />
             ))}
 

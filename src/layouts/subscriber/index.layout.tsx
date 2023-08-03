@@ -6,6 +6,7 @@ import {
   DocumentTextIcon,
   Squares2X2Icon,
   TruckIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -44,6 +45,21 @@ const links = [
   },
 ];
 
+const belowLinks = [
+  // {
+  //   id: 1,
+  //   Icon: <Squares2X2Icon className={"w-8 h-8"} />,
+  //   label: "Settings",
+  //   href: "/agent/settings",
+  // },
+  {
+    id: 2,
+    Icon: <LockClosedIcon className={"w-8 h-8"} />,
+    label: "Log Out",
+    href: "/auth/choose-user-type",
+  },
+];
+
 interface SubscriberLayoutProps {
   title: string;
   caption: string;
@@ -60,8 +76,12 @@ const SubscriberLayout: React.FC<SubscriberLayoutProps> = ({
   useEffect(() => {
     const userType = localStorage.getItem("UserState");
 
-    if (userType !== "Subscriber") {
-      router.push("/auth/sign-in");
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (!autoFlexUserDataString) {
+      router.push("/auth/choose-user-type");
+    } else if (userType !== "Subscriber") {
+      router.push("/auth/choose-user-type");
     }
   }, []);
 
@@ -96,6 +116,24 @@ const SubscriberLayout: React.FC<SubscriberLayoutProps> = ({
                   ? "text-primary bg-background"
                   : "text-gray-dark"
               } rounded-md`}
+            >
+              {link.Icon}
+              <span className={"font-medium"}>{link.label}</span>
+            </Link>
+          ))}
+        </div>
+
+        <div>
+          {belowLinks.map((link) => (
+            <Link
+              key={link.id}
+              href={link.href}
+              className={`w-full p-3 flex items-center gap-2 ${
+                router.pathname === link.href
+                  ? "text-primary bg-background"
+                  : "text-gray-dark"
+              } rounded-md`}
+              onClick={() => localStorage.clear()}
             >
               {link.Icon}
               <span className={"font-medium"}>{link.label}</span>

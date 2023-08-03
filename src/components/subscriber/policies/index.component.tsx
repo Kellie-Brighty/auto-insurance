@@ -14,7 +14,7 @@ import ButtonComponent from "@/common/button/index.component";
 import { useEffect, useState } from "react";
 import subscriberService from "../../../../services/subscriber.service";
 
-type UserDataType = {
+export type UserDataType = {
   createdAt: string;
   deletedAt: null;
   email: string;

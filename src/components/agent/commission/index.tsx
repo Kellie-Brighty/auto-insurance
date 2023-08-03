@@ -12,18 +12,21 @@ import { useEffect, useState } from "react";
 import FormCheckboxComponent from "@/common/form-checkbox/index.component";
 import SubscriberPolicyStatusChipsComponent from "@/components/subscriber/policies/status-chips/index.component";
 import ButtonComponent from "@/common/button/index.component";
+import agentService from "../../../../services/agent.service";
+import { UserDataType } from "@/components/subscriber/policies/index.component";
 
 const AgentCommissionComponent = () => {
   const [commissionsHeaders, setCommissionsHeaders] = useState<TableHeader[]>(
-    [],
+    []
   );
   const [commissionsRows, setCommissionsRows] = useState<TableRow[]>([]);
 
   const [commissionsTotalPages, setCommissionsTotalPages] = useState<number>(0);
   const [commissionsCurrentPage, setCommissionsCurrentPage] =
     useState<number>(0);
+  const { GetCommissions } = agentService;
 
-  useEffect(() => {
+  const getCommisionsAction = async () => {
     setCommissionsHeaders([
       { id: 0, label: <FormCheckboxComponent /> },
       { id: 1, label: <span>Commission</span> },
@@ -35,79 +38,45 @@ const AgentCommissionComponent = () => {
       { id: 7, label: <span>Actions</span> },
     ]);
 
-    setCommissionsRows([
-      {
-        id: 1,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>₦625,000</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"active"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-      {
-        id: 2,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>₦625,000</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"abandoned"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-      {
-        id: 3,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>₦625,000</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"awaiting"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-      {
-        id: 4,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>₦625,000</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"expired"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-    ]);
+    const userData = localStorage.getItem("AutoFlexUserData");
+    let parsedData: UserDataType | null = null;
 
-    setCommissionsTotalPages(50);
-    setCommissionsCurrentPage(1);
+    try {
+      if (userData) {
+        parsedData = JSON.parse(userData) as UserDataType;
+        const agentId = parsedData.id;
+        const res = await GetCommissions(agentId);
+        if (res.status === 200 || res.status === 201) {
+          setCommissionsRows(
+            res.data.data.commission.map((policy: any) => ({
+              id: policy.id,
+              data: {
+                0: <FormCheckboxComponent />,
+                1: <span>₦625,000</span>,
+                2: <span>UIC/ERT/MIZP/164</span>,
+                3: <span>₦625,000</span>,
+                4: <span>01.01.2022</span>,
+                5: <span>01.01.2022</span>,
+                6: <SubscriberPolicyStatusChipsComponent type={"active"} />,
+                7: (
+                  <ButtonComponent size={"sm"} variant={"outlined"}>
+                    <span>View Details</span>
+                  </ButtonComponent>
+                ),
+              },
+            }))
+          );
+          setCommissionsTotalPages(50);
+          setCommissionsCurrentPage(1);
+        }
+      }
+    } catch (err: any) {
+      console.log(err.response.data.message);
+    }
+  };
+
+  useEffect(() => {
+    getCommisionsAction();
   }, []);
 
   return (
@@ -167,13 +136,24 @@ const AgentCommissionComponent = () => {
         </div>
 
         <div className={"p-6 bg-white rounded-md"}>
-          <TableComponent
-            headers={commissionsHeaders}
-            rows={commissionsRows}
-            totalPages={commissionsTotalPages}
-            currentPage={commissionsCurrentPage}
-            onPageChange={() => {}}
-          />
+          {commissionsRows.length !== 0 ? (
+            <TableComponent
+              headers={commissionsHeaders}
+              rows={commissionsRows}
+              totalPages={commissionsTotalPages}
+              currentPage={commissionsCurrentPage}
+              onPageChange={() => {}}
+            />
+          ) : (
+            <div className={`text-center p-[50px]`}>
+              <p className={`font-grotesk text-[20px] font-bold`}>
+                No Commissions yet
+              </p>
+              <p className={`text-[14px] text-[#94A3B8]`}>
+                Your commissions will appear as soon as you have any
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </AgentLayout>

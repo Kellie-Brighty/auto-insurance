@@ -12,8 +12,11 @@ import SubscriberLayout from "@/layouts/subscriber/index.layout";
 import uploadBase64ImageToFirebaseStorage from "@/utils/firebase/uploadBase64ImageToFBStorage";
 import uploadFileToFirebaseStorage from "@/utils/firebase/uploadFileToFirebaseStorage";
 import { uuidv4 } from "@firebase/util";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import api from "../../../../services/Api";
+import subscriberService from "../../../../services/subscriber.service";
+import { useRouter } from "next/router";
+import { GlobalContext } from "../../../../services/context";
 
 const SubscriberKycStepsComponent = () => {
   const { userBasicInfo, getAndSetUserBasicInfo } = useUserBasicInfo();
@@ -23,14 +26,18 @@ const SubscriberKycStepsComponent = () => {
   const [loading, setLoading] = useState(false);
 
   const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({
-    firstName: "",
-    middleName: "",
-    lastName: "",
+    firstname: "",
+    middlename: "",
+    lastname: "",
     homeAddress: "",
-    modeOfIdentification: "",
+    id_type: "",
     idCardFront: "",
     idCardBack: "",
   });
+  const { MakePayment, VerifyPayment } = subscriberService;
+  const router = useRouter();
+  const { reference } = router.query;
+  const { setKycCompleted } = useContext(GlobalContext);
 
   const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
     vehicleName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
@@ -213,14 +220,43 @@ const SubscriberKycStepsComponent = () => {
             getAndSetUserBasicInfo();
 
             // TODO: update the kyc status
-            // await api.put(
-            //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
-            //   {
-            //     vehicle_info_complete: true,
-            //   }
-            // );
+            await api.put(
+              `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+              {
+                vehicle_info_complete: true,
+              }
+            );
             setLoading(false);
             await fetchKycStatus();
+          } catch (error) {
+            console.log("Something went wrong: ", error);
+            setLoading(false);
+            return;
+          }
+          break;
+        case 5:
+          try {
+            setLoading(true);
+            const autoFlexUserDataString =
+              localStorage.getItem("AutoFlexUserData");
+
+            if (autoFlexUserDataString) {
+              const autoFlexUserData = JSON.parse(
+                autoFlexUserDataString
+              ) as any;
+              const res = await MakePayment(
+                autoFlexUserData.email,
+                userBasicInfo?.basic_info.policy.policy_amount
+              );
+              console.log(res.data);
+              if (res.status === 200 || res.status === 201) {
+                const payment_url =
+                  res.data.paystack_response.data.authorization_url;
+
+                if (payment_url) window.location.href = payment_url;
+              }
+            }
+            setLoading(false);
           } catch (error) {
             console.log("Something went wrong: ", error);
             setLoading(false);
@@ -246,6 +282,26 @@ const SubscriberKycStepsComponent = () => {
   useEffect(() => {
     fetchKycStatus();
   }, []);
+
+  const verifyPaymentAction = async () => {
+    if (reference) {
+      const res = await VerifyPayment(reference);
+      if (res.data.status === "success") {
+        await api.put(
+          `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+          {
+            kyc_complete: true,
+          }
+        );
+        await fetchKycStatus();
+        setKycCompleted(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    verifyPaymentAction();
+  }, [reference]);
 
   useEffect(() => {
     setSteps([
@@ -330,7 +386,11 @@ const SubscriberKycStepsComponent = () => {
             variant={"filled"}
             onClick={handleNextStep}
           >
-            {loading ? "Wait..." : "Next Step"}
+            {loading
+              ? "Wait..."
+              : stepIndex === 5
+              ? "Make payment"
+              : "Next Step"}
           </ButtonComponent>
         </div>
       </div>

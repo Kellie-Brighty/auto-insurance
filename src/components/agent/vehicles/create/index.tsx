@@ -1,16 +1,51 @@
-import { useEffect, useMemo, useState } from "react";
-import StepsComponent, { Step } from "@/common/steps/index.component";
-import FormInputComponent from "@/common/form-input/index.component";
-import FormSelectComponent from "@/common/form-select/index.component";
-import FormFileInputComponent from "@/common/form-file-input/index.component";
+import UploadVehicleImagesComponent, {
+  VehicleImagesDetails,
+} from "@/common/app/vehicle/upload-vehicle-images";
+import UploadVehicleVideoComponent, {
+  VehicleVideoDetails,
+} from "@/common/app/vehicle/upload-vehicle-video";
+import VehicleDetailsComponent, {
+  VehicleDetails,
+} from "@/common/app/vehicle/vehicle-details";
 import ButtonComponent from "@/common/button/index.component";
+import StepsComponent, { Step } from "@/common/steps/index.component";
+import useUserBasicInfo from "@/hooks/useUserBasicInfo";
 import AgentLayout from "@/layouts/agent/index.layout";
+import { useEffect, useState } from "react";
+import api from "../../../../../services/Api";
 
-const AgentCreateVehicleComponent = () => {
+const SubscriberCreateVehicleComponent = () => {
+  const { userBasicInfo } = useUserBasicInfo();
+
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handlePrevStep = () => {
+  const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
+    carName: "",
+    carWorth: 0,
+    year: "",
+    carType: "",
+    carColor: "",
+    plateNumber: "",
+    engineNumber: "",
+    chassisNumber: "",
+  });
+
+  const [vehicleID, setVehicleID] = useState<string | null>(null);
+
+  const [vehicleImagesDetails, setVehicleImagesDetails] =
+    useState<VehicleImagesDetails>({
+      dashboard: "",
+      frontSide: "",
+      leftSide: "",
+      backSide: "",
+      rightSide: "",
+    });
+  const [vehicleVideoDetails, setVehicleVideoDetails] =
+    useState<VehicleVideoDetails>({ video: "" });
+
+  const handlePrevStep = async () => {
     if (stepIndex && stepIndex > 1) {
       setSteps((prev) =>
         prev.map((step) =>
@@ -18,15 +53,57 @@ const AgentCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "pending" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex - 1);
     }
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
+    if (stepIndex === 1) {
+      setLoading(true);
+      try {
+        const vehicle = await api.post(`/vehicle`, {
+          user_id: userBasicInfo?.basic_info.vehicle.user_id,
+          vehicleName: vehicleDetails.carName,
+          vehicleWorth: vehicleDetails.carWorth,
+          vehicleYear: vehicleDetails.year,
+          vehicleType: vehicleDetails.carType,
+          vehicleColor: vehicleDetails.carColor,
+          plateNumber: vehicleDetails.plateNumber,
+          chasisNumber: vehicleDetails.chassisNumber,
+          engineNumber: vehicleDetails.engineNumber,
+        });
+
+        setVehicleID(vehicle.data.data.id);
+        setLoading(false);
+      } catch (error) {
+        console.log("Something went wrong: ", error);
+        setLoading(false);
+        return;
+      }
+    } else if (stepIndex === 3) {
+      setLoading(true);
+      try {
+        await api.post(`/vehicle/media`, {
+          vehicle_dashboard: vehicleImagesDetails.dashboard,
+          vehicle_front: vehicleImagesDetails.frontSide,
+          vehicle_left_side: vehicleImagesDetails.leftSide,
+          vehicle_back: vehicleImagesDetails.backSide,
+          vehicle_right_side: vehicleImagesDetails.rightSide,
+          vehicle_video: vehicleVideoDetails.video,
+          vehicle_id: vehicleID,
+        });
+        setLoading(false);
+      } catch (error) {
+        console.log("Something went wrong: ", error);
+        setLoading(false);
+        return;
+      }
+    }
+
     if (stepIndex && stepIndex < steps.length) {
       setSteps((prev) =>
         prev.map((step) =>
@@ -34,372 +111,13 @@ const AgentCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "completed" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex + 1);
     }
   };
-
-  const VehicleDetailsComponent = useMemo(
-    () =>
-      function VehicleDetailsComponent() {
-        return (
-          <div className={"w-full bg-white rounded-md"}>
-            <div className={"p-6 border-b border-gray-main"}>
-              <h3 className={"text-lg font-medium"}>Vehicle Details</h3>
-            </div>
-
-            <div className={"p-6 grid grid-cols-12 gap-3"}>
-              <div className={"col-span-12 lg:col-span-12"}>
-                <FormInputComponent
-                  name={"carName"}
-                  required={true}
-                  label={"Which car do you own?"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  type={"year"}
-                  name={"year"}
-                  required={true}
-                  label={"Year"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormSelectComponent
-                  name={"carType"}
-                  required={true}
-                  label={"Vehicle Type"}
-                >
-                  <option>Toyota</option>
-                  <option>Toyota</option>
-                  <option>Toyota</option>
-                </FormSelectComponent>
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormSelectComponent
-                  name={"carColor"}
-                  required={true}
-                  label={"Vehicle Color"}
-                >
-                  <option>Black</option>
-                  <option>Black</option>
-                  <option>Black</option>
-                </FormSelectComponent>
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  name={"plateNumber"}
-                  required={true}
-                  label={"Plate Number"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  name={"engineNumber"}
-                  required={true}
-                  label={"Engine Number"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  name={"chassisNumber"}
-                  required={true}
-                  label={"Chassis Number"}
-                />
-              </div>
-            </div>
-          </div>
-        );
-      },
-    [],
-  );
-
-  const UploadVehicleImagesComponent = useMemo(
-    () =>
-      function UploadVehicleImagesComponent() {
-        return (
-          <div className={"w-full bg-white rounded-md"}>
-            <div className={"p-6 border-b border-gray-main"}>
-              <h3 className={"text-lg font-medium"}>Upload Vehicle Images</h3>
-            </div>
-
-            <div className={"p-6 grid grid-cols-12 items-start gap-3"}>
-              <div
-                className={
-                  "col-span-12 xl:col-span-6 p-6 space-y-3 border border-gray-main rounded-md"
-                }
-              >
-                <FormFileInputComponent label={"Vehicle Dashboard"} />
-                <FormFileInputComponent label={"Vehicle Front Side"} />
-                <FormFileInputComponent label={"Vehicle Left Side"} />
-                <FormFileInputComponent label={"Vehicle Back Side"} />
-                <FormFileInputComponent label={"Vehicle Right Side"} />
-              </div>
-
-              <div className={"col-span-12 xl:col-span-6 space-y-3"}>
-                <div
-                  className={
-                    "w-full p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <div className={"col-span-12 flex flex-col gap-1"}>
-                    <span className={"text-sm text-gray-dark"}>Car Name</span>
-                    <span className={"text-2xl font-grotesk font-bold"}>
-                      2023 Toyota Avalon Xl
-                    </span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>Year</span>
-                    <span className={"font-grotesk font-bold"}>2023</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Vehicle Type
-                    </span>
-                    <span className={"font-grotesk font-bold"}>Toyota</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Vehicle Color
-                    </span>
-                    <span className={"font-grotesk font-bold"}>Black</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Plate Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>KJA193AA</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Engine Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>52WVC10338</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Chassis Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>
-                      JYA2UJE0X2A050036
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  className={
-                    "w-full p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      },
-    [],
-  );
-
-  const UploadVehicleVideoComponent = useMemo(
-    () =>
-      function UploadVehicleVideoComponent() {
-        return (
-          <div className={"w-full bg-white rounded-md"}>
-            <div className={"p-6 border-b border-gray-main"}>
-              <h3 className={"text-lg font-medium"}>Upload Vehicle Video</h3>
-            </div>
-
-            <div className={"p-6 grid grid-cols-12 items-start gap-3"}>
-              <div
-                className={
-                  "col-span-12 xl:col-span-6 p-6 space-y-3 border border-gray-main rounded-md"
-                }
-              >
-                <FormFileInputComponent label={"Vehicle Video"} />
-              </div>
-
-              <div className={"col-span-12 xl:col-span-6 space-y-3"}>
-                <div
-                  className={
-                    "w-full p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <div className={"col-span-12 flex flex-col gap-1"}>
-                    <span className={"text-sm text-gray-dark"}>Car Name</span>
-                    <span className={"text-2xl font-grotesk font-bold"}>
-                      2023 Toyota Avalon Xl
-                    </span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>Year</span>
-                    <span className={"font-grotesk font-bold"}>2023</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Vehicle Type
-                    </span>
-                    <span className={"font-grotesk font-bold"}>Toyota</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Vehicle Color
-                    </span>
-                    <span className={"font-grotesk font-bold"}>Black</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Plate Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>KJA193AA</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Engine Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>52WVC10338</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Chassis Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>
-                      JYA2UJE0X2A050036
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  className={
-                    "col-span-12 xl:col-span-6 p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <div
-                    className={
-                      "col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div className={"col-span-9 space-y-3"}>
-                    <div className={"col-span-12 flex flex-col gap-1"}>
-                      <span className={"text-sm text-gray-dark"}>
-                        Video URL
-                      </span>
-                      <span className={"text-primary truncate"}>
-                        https://www.pexels.com/search/videos/car/
-                      </span>
-                    </div>
-
-                    <div className={"col-span-12 flex flex-col gap-1"}>
-                      <span className={"text-sm text-gray-dark"}>
-                        File Name
-                      </span>
-                      <span className={"font-grotesk font-bold"}>
-                        Toyota.mp4
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      },
-    [],
-  );
-
-  const StepSwitch = useMemo(
-    () =>
-      function StepSwitch() {
-        switch (stepIndex) {
-          case 1:
-            return <VehicleDetailsComponent />;
-          case 2:
-            return <UploadVehicleImagesComponent />;
-          case 3:
-            return <UploadVehicleVideoComponent />;
-        }
-      },
-    [
-      stepIndex,
-      VehicleDetailsComponent,
-      UploadVehicleImagesComponent,
-      UploadVehicleVideoComponent,
-    ],
-  );
 
   useEffect(() => {
     setSteps([
@@ -434,7 +152,27 @@ const AgentCreateVehicleComponent = () => {
     >
       <div className={"space-y-8"}>
         <StepsComponent steps={steps} />
-        <StepSwitch />
+
+        {stepIndex === 1 ? (
+          <VehicleDetailsComponent
+            vehicleDetails={vehicleDetails}
+            setVehicleDetails={setVehicleDetails}
+          />
+        ) : stepIndex === 2 ? (
+          <UploadVehicleImagesComponent
+            vehicleImagesDetails={vehicleImagesDetails}
+            setVehicleImagesDetails={setVehicleImagesDetails}
+            vehicleDetails={vehicleDetails}
+          />
+        ) : stepIndex == 3 ? (
+          <UploadVehicleVideoComponent
+            vehicleVideoDetails={vehicleVideoDetails}
+            setVehicleVideoDetails={setVehicleVideoDetails}
+            vehicleDetails={vehicleDetails}
+          />
+        ) : (
+          <></>
+        )}
 
         <div className={"flex items-center justify-end gap-3"}>
           <ButtonComponent
@@ -449,7 +187,7 @@ const AgentCreateVehicleComponent = () => {
             variant={"filled"}
             onClick={handleNextStep}
           >
-            Next Step
+            {loading ? "Wait..." : "Next Step"}
           </ButtonComponent>
         </div>
       </div>
@@ -457,4 +195,4 @@ const AgentCreateVehicleComponent = () => {
   );
 };
 
-export default AgentCreateVehicleComponent;
+export default SubscriberCreateVehicleComponent;

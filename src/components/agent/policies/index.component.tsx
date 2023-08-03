@@ -12,6 +12,8 @@ import SubscriberPolicyStatusChipsComponent from "@/components/subscriber/polici
 import ButtonComponent from "@/common/button/index.component";
 import { useEffect, useState } from "react";
 import AgentLayout from "@/layouts/agent/index.layout";
+import { UserDataType } from "@/components/subscriber/policies/index.component";
+import agentService from "../../../../services/agent.service";
 
 const AgentPoliciesComponent = () => {
   const [policiesHeaders, setPoliciesHeaders] = useState<TableHeader[]>([]);
@@ -19,8 +21,9 @@ const AgentPoliciesComponent = () => {
 
   const [policiesTotalPages, setPoliciesTotalPages] = useState<number>(0);
   const [policiesCurrentPage, setPoliciesCurrentPage] = useState<number>(0);
+  const { GetPolicies } = agentService;
 
-  useEffect(() => {
+  const getPoliciesAction = async () => {
     setPoliciesHeaders([
       { id: 0, label: <FormCheckboxComponent /> },
       { id: 1, label: <span>Policy Name</span> },
@@ -31,80 +34,41 @@ const AgentPoliciesComponent = () => {
       { id: 6, label: <span>Status</span> },
       { id: 7, label: <span>Actions</span> },
     ]);
+    const userData = localStorage.getItem("AutoFlexUserData");
+    let parsedData: UserDataType | null = null;
+    if (userData) {
+      parsedData = JSON.parse(userData) as UserDataType;
+      const agentId = parsedData.id;
+      const res = await GetPolicies(agentId);
+      // console.log("Policies:::", res.data.data);
+      if (res.status === 200 || res.status === 201) {
+        setPoliciesRows(
+          res.data.data.policies.map((policy: any) => ({
+            id: policy.id,
+            data: {
+              0: <FormCheckboxComponent />,
+              1: policy.policyName,
+              2: policy.policyNumber === null ? "---" : policy.policyNumber,
+              3: policy.policy_amount,
+              4: policy.start_date === null ? "---" : policy.start_date,
+              5: policy.end_date === null ? "---" : policy.end_date,
+              6: <SubscriberPolicyStatusChipsComponent type={policy.status} />,
+              7: (
+                <ButtonComponent size={"sm"} variant={"outlined"}>
+                  <span>View Details</span>
+                </ButtonComponent>
+              ),
+            },
+          }))
+        );
+        setPoliciesTotalPages(50);
+        setPoliciesCurrentPage(1);
+      }
+    }
+  };
 
-    setPoliciesRows([
-      {
-        id: 1,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"active"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-      {
-        id: 2,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"abandoned"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-      {
-        id: 3,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"awaiting"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-      {
-        id: 4,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>01.01.2022</span>,
-          5: <span>01.01.2022</span>,
-          6: <SubscriberPolicyStatusChipsComponent type={"expired"} />,
-          7: (
-            <ButtonComponent size={"sm"} variant={"outlined"}>
-              <span>View Details</span>
-            </ButtonComponent>
-          ),
-        },
-      },
-    ]);
-
-    setPoliciesTotalPages(50);
-    setPoliciesCurrentPage(1);
+  useEffect(() => {
+    getPoliciesAction();
   }, []);
 
   return (
@@ -161,13 +125,24 @@ const AgentPoliciesComponent = () => {
         </div>
 
         <div className={"p-6 bg-white rounded-md"}>
-          <TableComponent
-            headers={policiesHeaders}
-            rows={policiesRows}
-            totalPages={policiesTotalPages}
-            currentPage={policiesCurrentPage}
-            onPageChange={() => {}}
-          />
+          {policiesRows.length !== 0 ? (
+            <TableComponent
+              headers={policiesHeaders}
+              rows={policiesRows}
+              totalPages={policiesTotalPages}
+              currentPage={policiesCurrentPage}
+              onPageChange={() => {}}
+            />
+          ) : (
+            <div className={`text-center p-[50px]`}>
+              <p className={`font-grotesk text-[20px] font-bold`}>
+                No Policies yet
+              </p>
+              <p className={`text-[14px] text-[#94A3B8]`}>
+                Your policies will appear as soon as you make one
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </AgentLayout>

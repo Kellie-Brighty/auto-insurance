@@ -1,8 +1,8 @@
 import SubscriberKycStepsComponent from "@/components/subscriber/kyc-steps/index.component";
 import { useContext, useEffect, useState } from "react";
 import SubscriberDashboardComponent from "@/components/subscriber/dashboard";
-import subscriberService from "../../../services/subscriber.service";
 import { GlobalContext } from "../../../services/context";
+import subscriberService from "../../../services/subscriber.service";
 
 type UserDataType = {
   createdAt: string;
@@ -22,10 +22,24 @@ type UserDataType = {
 };
 
 export default function SubscriberOverview() {
-  const [kycCompleted, setKycCompleted] = useState(false);
+  const { setKycCompleted, kycCompleted } = useContext(GlobalContext);
+  const { FetchKYCStatus } = subscriberService;
+
+  const checkKYCStatus = async () => {
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (autoFlexUserDataString) {
+      const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+      const kycStatusData = await FetchKYCStatus(autoFlexUserData.id);
+      console.log("kyc data in overview:::", kycStatusData.data.data);
+      if (kycStatusData.data.data.kyc_complete === true) {
+        setKycCompleted(true);
+      }
+    }
+  };
 
   useEffect(() => {
-    setKycCompleted(false);
+    checkKYCStatus();
   }, []);
 
   return kycCompleted ? (

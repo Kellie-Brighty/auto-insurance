@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
+import adminService from "../../../services/admin.service";
+import { LockClosedIcon } from "@heroicons/react/24/outline";
 
 const links = [
   {
@@ -66,6 +68,39 @@ const links = [
   },
 ];
 
+const belowLinks = [
+  // {
+  //   id: 1,
+  //   Icon: <Squares2X2Icon className={"w-8 h-8"} />,
+  //   label: "Settings",
+  //   href: "/agent/settings",
+  // },
+  {
+    id: 2,
+    Icon: <LockClosedIcon className={"w-8 h-8"} />,
+    label: "Log Out",
+    href: "/auth/choose-user-type",
+  },
+];
+
+export type ManagementReportData = {
+  active_policies: number;
+  approved_commission_amount: number;
+  awaiting_approval_commission_amount: number;
+  expired_policies: number;
+  gains: number;
+  inactive_commission_amount: number;
+  losses: number;
+  pending_policies: number;
+  rejected_commission_amount: number;
+  total_active_policy_amount: number;
+  total_agent: number;
+  total_commission_amount: number;
+  total_policies: number;
+  total_policy_amount: number;
+  total_subscriber: number;
+};
+
 interface AdminLayoutProps {
   title: string;
   caption: string;
@@ -78,12 +113,28 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   children,
 }) => {
   const router = useRouter();
+  const { GetManagementReport } = adminService;
+
+  const saveManagementReportAction = async () => {
+    try {
+      const res = await GetManagementReport();
+      console.log(res.data.data);
+      localStorage.setItem("ManagementReport", JSON.stringify(res.data.data));
+    } catch (err: any) {
+      console.log(err.response.data.message);
+    }
+  };
 
   useEffect(() => {
     const userType = localStorage.getItem("UserState");
+    saveManagementReportAction();
 
-    if (userType !== "Admin") {
-      router.push("/auth/sign-in");
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (!autoFlexUserDataString) {
+      router.push("/auth/choose-user-type");
+    } else if (userType !== "Admin") {
+      router.push("/auth/choose-user-type");
     }
   }, []);
 
@@ -140,6 +191,24 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
               >
                 {link.label}
               </p>
+            </Link>
+          ))}
+        </div>
+
+        <div>
+          {belowLinks.map((link) => (
+            <Link
+              key={link.id}
+              href={link.href}
+              className={`w-full p-3 flex items-center gap-2 ${
+                router.pathname === link.href
+                  ? "text-primary bg-background"
+                  : "text-gray-dark"
+              } rounded-md`}
+              onClick={() => localStorage.clear()}
+            >
+              {link.Icon}
+              <span className={"font-medium"}>{link.label}</span>
             </Link>
           ))}
         </div>

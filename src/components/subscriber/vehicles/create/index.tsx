@@ -13,12 +13,14 @@ import useUserBasicInfo from "@/hooks/useUserBasicInfo";
 import SubscriberLayout from "@/layouts/subscriber/index.layout";
 import { useEffect, useState } from "react";
 import api from "../../../../../services/Api";
+import subscriberService from "../../../../../services/subscriber.service";
 
 const SubscriberCreateVehicleComponent = () => {
   const { userBasicInfo } = useUserBasicInfo();
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
     carName: "",
@@ -32,6 +34,7 @@ const SubscriberCreateVehicleComponent = () => {
   });
 
   const [vehicleID, setVehicleID] = useState<string | null>(null);
+  const { MakePayment } = subscriberService;
 
   const [vehicleImagesDetails, setVehicleImagesDetails] =
     useState<VehicleImagesDetails>({
@@ -52,8 +55,8 @@ const SubscriberCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "pending" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex - 1);
@@ -62,6 +65,7 @@ const SubscriberCreateVehicleComponent = () => {
 
   const handleNextStep = async () => {
     if (stepIndex === 1) {
+      setLoading(true);
       try {
         const vehicle = await api.post(`/vehicle`, {
           user_id: userBasicInfo?.basic_info.vehicle.user_id,
@@ -76,13 +80,16 @@ const SubscriberCreateVehicleComponent = () => {
         });
 
         setVehicleID(vehicle.data.data.id);
+        setLoading(false);
       } catch (error) {
         console.log("Something went wrong: ", error);
+        setLoading(false);
         return;
       }
     } else if (stepIndex === 3) {
+      setLoading(true);
       try {
-        await api.post(`/vehicle/media`, {
+        const res = await api.post(`/vehicle/media`, {
           vehicle_dashboard: vehicleImagesDetails.dashboard,
           vehicle_front: vehicleImagesDetails.frontSide,
           vehicle_left_side: vehicleImagesDetails.leftSide,
@@ -91,8 +98,30 @@ const SubscriberCreateVehicleComponent = () => {
           vehicle_video: vehicleVideoDetails.video,
           vehicle_id: vehicleID,
         });
+
+        if (res.status === 200 || res.status === 201) {
+          const autoFlexUserDataString =
+            localStorage.getItem("AutoFlexUserData");
+
+          if (autoFlexUserDataString) {
+            const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+            const res = await MakePayment(
+              autoFlexUserData.email,
+              userBasicInfo?.basic_info.policy.policy_amount
+            );
+            console.log(res.data);
+            if (res.status === 200 || res.status === 201) {
+              const payment_url =
+                res.data.paystack_response.data.authorization_url;
+
+              if (payment_url) window.location.href = payment_url;
+            }
+          }
+        }
+        setLoading(false);
       } catch (error) {
         console.log("Something went wrong: ", error);
+        setLoading(false);
         return;
       }
     }
@@ -104,8 +133,8 @@ const SubscriberCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "completed" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex + 1);
@@ -180,7 +209,11 @@ const SubscriberCreateVehicleComponent = () => {
             variant={"filled"}
             onClick={handleNextStep}
           >
-            Next Step
+            {loading
+              ? "Wait..."
+              : stepIndex === 3
+              ? "Proceed to pay"
+              : "Next Step"}
           </ButtonComponent>
         </div>
       </div>

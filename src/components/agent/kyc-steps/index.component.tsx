@@ -12,11 +12,12 @@ import SubscriberLayout from "@/layouts/subscriber/index.layout";
 import uploadBase64ImageToFirebaseStorage from "@/utils/firebase/uploadBase64ImageToFBStorage";
 import uploadFileToFirebaseStorage from "@/utils/firebase/uploadFileToFirebaseStorage";
 import { uuidv4 } from "@firebase/util";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import api from "../../../../services/Api";
 import Image from "next/image";
 import AgentLayout from "@/layouts/agent/index.layout";
 import DialogComponent from "@/common/dialog/index.component";
+import agentService from "../../../../services/agent.service";
 
 const AgentKycStepsComponent = () => {
   const { userBasicInfo } = useUserBasicInfo();
@@ -25,6 +26,25 @@ const AgentKycStepsComponent = () => {
   const [stepIndex, setStepIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [copyState, setCopyState] = useState(false);
+  const [linkToCpy, setLinkToCopy] = useState("");
+  const [isCopied, setIsCopied] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(linkToCpy).then(() => {
+      setIsCopied(true);
+
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      timerRef.current = window.setTimeout(() => {
+        setIsCopied(false);
+      }, 3000);
+    });
+  };
+
+  const { GeneratePaymentLink } = agentService;
 
   const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({
     firstName: "",
@@ -64,14 +84,6 @@ const AgentKycStepsComponent = () => {
     },
   });
 
-  const fetchKycStatus = async () => {
-    // const kycStatusData = await api.get(
-    //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
-    // );
-    // console.log("user basic info:::", userBasicInfo && userBasicInfo);
-    // TODO: set kyc status to a state
-  };
-
   const handlePrevStep = () => {
     if (stepIndex) {
       setSteps((prev) =>
@@ -94,149 +106,147 @@ const AgentKycStepsComponent = () => {
     if (autoFlexUserDataString) {
       const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
       if (stepIndex) {
-        // switch (stepIndex) {
-        //   case 3:
-        //     console.log(personalDetails);
-        //     setLoading(true);
+        switch (stepIndex) {
+          case 3:
+            console.log(personalDetails);
+            setLoading(true);
 
-        //     try {
-        //       const idCardFrontURL = await uploadBase64ImageToFirebaseStorage(
-        //         personalDetails.idCardFront,
-        //         `${uuidv4()}.png`
-        //       );
+            try {
+              const idCardFrontURL = await uploadBase64ImageToFirebaseStorage(
+                personalDetails.idCardFront,
+                `${uuidv4()}.png`
+              );
 
-        //       const idCardBackURL = await uploadBase64ImageToFirebaseStorage(
-        //         personalDetails.idCardBack,
-        //         `${uuidv4()}.png`
-        //       );
+              const idCardBackURL = await uploadBase64ImageToFirebaseStorage(
+                personalDetails.idCardBack,
+                `${uuidv4()}.png`
+              );
 
-        //       await api.post(`/agent/register-subscriber`, {
-        //         firstname: personalDetails.firstName,
-        //         lastname: personalDetails.lastName,
-        //         middlename: personalDetails.middleName,
-        //         homeAddress: personalDetails.homeAddress,
-        //         agent_id: autoFlexUserData.id,
-        //         email: personalDetails.email,
-        //         phoneNumber: personalDetails.phoneNumber,
-        //       });
+              const res = await api.post(`/agent/register-subscriber`, {
+                firstname: personalDetails.firstName,
+                lastname: personalDetails.lastName,
+                middlename: personalDetails.middleName,
+                homeAddress: personalDetails.homeAddress,
+                agent_id: autoFlexUserData.id,
+                email: personalDetails.email,
+                phoneNumber: personalDetails.phoneNumber,
+              });
 
-        //       // TODO: add subscriber ID card upload
-        //       await api.post(`/subscriber/id-card`, {
-        //         id_front: idCardFrontURL,
-        //         id_back: idCardBackURL,
-        //         user_id: autoFlexUserData.id,
-        //       });
+              if (res.status === 200 || res.status === 201) {
+                console.log(res.data);
+                await api.post(`/subscriber/id-card`, {
+                  id_front: idCardFrontURL,
+                  id_back: idCardBackURL,
+                  user_id: res.data.subscriber.id,
+                });
+              }
 
-        //       // TODO: update user data in local storage
-        //       // const autoFlexUserData = await api.get(
-        //       //   `/subscriber/${userBasicInfo?.basic_info.vehicle.user_id}`
-        //       // );
+              // TODO: add subscriber ID card upload
 
-        //       // if (autoFlexUserData.data.data) {
-        //       //   localStorage.setItem(
-        //       //     "AutoFlexUserData",
-        //       //     JSON.stringify(autoFlexUserData.data.data)
-        //       //   );
-        //       // }
+              setLoading(false);
+            } catch (error) {
+              console.log("Something went wrong: ", error);
+              setLoading(false);
+              return;
+            }
+            break;
+          case 4:
+            console.log(vehicleDetails);
 
-        //       // TODO: update the kyc status
-        //       // await api.put(
-        //       //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
-        //       //   {
-        //       //     personal_info_complete: true,
-        //       //   }
-        //       // );
+            setLoading(true);
 
-        //       await fetchKycStatus();
-        //       setLoading(false);
-        //     } catch (error) {
-        //       console.log("Something went wrong: ", error);
-        //       setLoading(false);
-        //       return;
-        //     }
-        //     break;
-        //   case 4:
-        //     console.log(vehicleDetails);
+            try {
+              await api.put(
+                `/vehicle/${userBasicInfo?.basic_info.vehicle.id}`,
+                {
+                  ...vehicleDetails,
+                  chasisNumber: vehicleDetails.chassisNumber,
+                  vehicleMedia: {},
+                  vehicleMediaURLs: {},
+                }
+              );
 
-        //     setLoading(true);
+              const vehicleDashboardURL = await uploadFileToFirebaseStorage(
+                vehicleDetails.vehicleMedia.dashboard,
+                `${uuidv4()}.${vehicleDetails.vehicleMedia.dashboard?.name.split(
+                  "."
+                )[1]}`
+              );
+              const vehicleFrontSideURL = await uploadFileToFirebaseStorage(
+                vehicleDetails.vehicleMedia.frontSide,
+                `${uuidv4()}.${vehicleDetails.vehicleMedia.frontSide?.name.split(
+                  "."
+                )[1]}`
+              );
+              const vehicleLeftSideURL = await uploadFileToFirebaseStorage(
+                vehicleDetails.vehicleMedia.leftSide,
+                `${uuidv4()}.${vehicleDetails.vehicleMedia.leftSide?.name.split(
+                  "."
+                )[1]}`
+              );
+              const vehicleBackSideURL = await uploadFileToFirebaseStorage(
+                vehicleDetails.vehicleMedia.backSide,
+                `${uuidv4()}.${vehicleDetails.vehicleMedia.backSide?.name.split(
+                  "."
+                )[1]}`
+              );
+              const vehicleRightSideURL = await uploadFileToFirebaseStorage(
+                vehicleDetails.vehicleMedia.rightSide,
+                `${uuidv4()}.${vehicleDetails.vehicleMedia.rightSide?.name.split(
+                  "."
+                )[1]}`
+              );
+              const vehicleVideoURL = await uploadFileToFirebaseStorage(
+                vehicleDetails.vehicleMedia.video,
+                `${uuidv4()}.${vehicleDetails.vehicleMedia.video?.name.split(
+                  "."
+                )[1]}`
+              );
 
-        //     try {
-        //       await api.put(
-        //         `/vehicle/${userBasicInfo?.basic_info.vehicle.id}`,
-        //         {
-        //           ...vehicleDetails,
-        //           chasisNumber: vehicleDetails.chassisNumber,
-        //           vehicleMedia: {},
-        //           vehicleMediaURLs: {},
-        //         }
-        //       );
+              // TODO: add vehicle media upload
+              await api.post(`/vehicle/media`, {
+                vehicle_dashboard: vehicleDashboardURL,
+                vehicle_front: vehicleFrontSideURL,
+                vehicle_left_side: vehicleLeftSideURL,
+                vehicle_back: vehicleBackSideURL,
+                vehicle_right_side: vehicleRightSideURL,
+                vehicle_video: vehicleVideoURL,
+                vehicle_id: userBasicInfo?.basic_info.vehicle.id,
+              });
 
-        //       const vehicleDashboardURL = await uploadFileToFirebaseStorage(
-        //         vehicleDetails.vehicleMedia.dashboard,
-        //         `${uuidv4()}.${vehicleDetails.vehicleMedia.dashboard?.name.split(
-        //           "."
-        //         )[1]}`
-        //       );
-        //       const vehicleFrontSideURL = await uploadFileToFirebaseStorage(
-        //         vehicleDetails.vehicleMedia.frontSide,
-        //         `${uuidv4()}.${vehicleDetails.vehicleMedia.frontSide?.name.split(
-        //           "."
-        //         )[1]}`
-        //       );
-        //       const vehicleLeftSideURL = await uploadFileToFirebaseStorage(
-        //         vehicleDetails.vehicleMedia.leftSide,
-        //         `${uuidv4()}.${vehicleDetails.vehicleMedia.leftSide?.name.split(
-        //           "."
-        //         )[1]}`
-        //       );
-        //       const vehicleBackSideURL = await uploadFileToFirebaseStorage(
-        //         vehicleDetails.vehicleMedia.backSide,
-        //         `${uuidv4()}.${vehicleDetails.vehicleMedia.backSide?.name.split(
-        //           "."
-        //         )[1]}`
-        //       );
-        //       const vehicleRightSideURL = await uploadFileToFirebaseStorage(
-        //         vehicleDetails.vehicleMedia.rightSide,
-        //         `${uuidv4()}.${vehicleDetails.vehicleMedia.rightSide?.name.split(
-        //           "."
-        //         )[1]}`
-        //       );
-        //       const vehicleVideoURL = await uploadFileToFirebaseStorage(
-        //         vehicleDetails.vehicleMedia.video,
-        //         `${uuidv4()}.${vehicleDetails.vehicleMedia.video?.name.split(
-        //           "."
-        //         )[1]}`
-        //       );
+              setLoading(false);
+            } catch (error) {
+              console.log("Something went wrong: ", error);
+              setLoading(false);
+              return;
+            }
+            break;
+          case 5:
+            try {
+              setLoading(true);
 
-        //       // TODO: add vehicle media upload
-        //       await api.post(`/vehicle/media`, {
-        //         vehicle_dashboard: vehicleDashboardURL,
-        //         vehicle_front: vehicleFrontSideURL,
-        //         vehicle_left_side: vehicleLeftSideURL,
-        //         vehicle_back: vehicleBackSideURL,
-        //         vehicle_right_side: vehicleRightSideURL,
-        //         vehicle_video: vehicleVideoURL,
-        //         vehicle_id: userBasicInfo?.basic_info.vehicle.id,
-        //       });
+              const res = await GeneratePaymentLink(
+                personalDetails.email,
+                userBasicInfo?.basic_info.policy.policy_amount
+              );
+              console.log(res.data);
+              if (res.status === 200 || res.status === 201) {
+                const payment_url =
+                  res.data.paystack_response.data.authorization_url;
 
-        //       // TODO: update vehicle in basic info
+                if (payment_url) {
+                  setCopyState(true);
+                  setLinkToCopy(payment_url);
+                }
+              }
 
-        //       // TODO: update the kyc status
-        //       // await api.put(
-        //       //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
-        //       //   {
-        //       //     vehicle_info_complete: true,
-        //       //   }
-        //       // );
-        //       setLoading(false);
-        //       await fetchKycStatus();
-        //     } catch (error) {
-        //       console.log("Something went wrong: ", error);
-        //       setLoading(false);
-        //       return;
-        //     }
-        //     break;
-        // }
+              setLoading(false);
+            } catch (error) {
+              console.log("Something went wrong: ", error);
+              setLoading(false);
+              return;
+            }
+        }
 
         setSteps((prev) =>
           prev.map((step) =>
@@ -249,17 +259,13 @@ const AgentKycStepsComponent = () => {
         );
 
         if (stepIndex === 5) {
-          setCopyState(true);
+          return;
         } else {
           setStepIndex(stepIndex + 1);
         }
       }
     }
   };
-
-  useEffect(() => {
-    fetchKycStatus();
-  }, []);
 
   useEffect(() => {
     setSteps([
@@ -347,9 +353,12 @@ const AgentKycStepsComponent = () => {
               <p
                 className={`font-inter font-semibold text-[#64748B] text-[16px]`}
               >
-                autoflex.com/ukjbdbdndnyHNPsLRr5OpyLpeqqpKZjv
+                {linkToCpy ? linkToCpy : null}
               </p>
-              <div className={`flex items-center space-x-5 cursor-pointer`}>
+              <div
+                className={`flex items-center space-x-5 cursor-pointer`}
+                onClick={handleCopy}
+              >
                 <Image
                   src={"/assets/agent/copy-gray.svg"}
                   alt="copy"
@@ -359,7 +368,7 @@ const AgentKycStepsComponent = () => {
                 <p
                   className={`font-inter font-semibold text-[#64748B] text-[16px]`}
                 >
-                  Copy link
+                  {isCopied ? "Copied to clipboard" : "Copy link"}
                 </p>
               </div>
             </div>

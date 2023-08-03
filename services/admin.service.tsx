@@ -16,11 +16,16 @@ const GetAllClaims = async () => {
   return await api.get(`/claim`);
 };
 
+const GetManagementReport = async () => {
+  return await api.get(`/admin/report/management-report`);
+};
+
 const adminService = {
   GetAllAgents,
   GetAllPolicies,
   AgentActivation,
   GetAllClaims,
+  GetManagementReport,
 };
 
 export default adminService;
