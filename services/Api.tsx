@@ -2,7 +2,7 @@ import axios from "axios";
 import TokenService from "./token.service";
 
 const instance = axios.create({
-  baseURL: "http://autoflex.universalinsuranceplc.com.ng/api/v1",
+  baseURL: "https://autoflex.universalinsuranceplc.com.ng/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
