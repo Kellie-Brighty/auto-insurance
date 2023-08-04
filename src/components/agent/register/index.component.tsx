@@ -183,7 +183,7 @@ const RegisterAgentComponent = () => {
               International Passport
             </option>
             <option value={"nationalepassport"}>National Passport</option>
-            <option value={"driverslicense"}>Driver's License</option>
+            <option value={"driverslicense"}>Driver&apos; License</option>
           </FormSelectComponent>
         </div>
 

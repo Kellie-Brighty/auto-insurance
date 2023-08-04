@@ -10,7 +10,7 @@ import AdminLayout, {
 import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 
-const claim = () => {
+const Claim = () => {
   const [totalAgent, setTotalAgent] = useState(0);
   const [totalActivePolicies, setTotalActivePolicies] = useState(0);
   const [totalInactivePolicies, setTotalInactivePolicies] = useState(0);
@@ -73,4 +73,4 @@ const claim = () => {
   );
 };
 
-export default claim;
+export default Claim;

@@ -18,6 +18,17 @@ import subscriberService from "../../../../services/subscriber.service";
 import { useRouter } from "next/router";
 import { GlobalContext } from "../../../../services/context";
 
+interface KYCstatus {
+  createdAt: string;
+  deletedAt: null;
+  id: number;
+  kyc_complete: boolean;
+  personal_info_complete: boolean;
+  updatedAt: string;
+  user_id: number;
+  vehicle_info_complete: boolean;
+}
+
 const SubscriberKycStepsComponent = () => {
   const { userBasicInfo, getAndSetUserBasicInfo } = useUserBasicInfo();
 
@@ -38,6 +49,7 @@ const SubscriberKycStepsComponent = () => {
   const router = useRouter();
   const { reference } = router.query;
   const { setKycCompleted } = useContext(GlobalContext);
+  const [kycStatus, setKycStatus] = useState<KYCstatus | null>(null);
 
   const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
     vehicleName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
@@ -75,6 +87,7 @@ const SubscriberKycStepsComponent = () => {
       );
 
       console.log("kycStata-==", kycStatusData);
+      setKycStatus(kycStatusData.data.data);
     }
 
     // console.log("user basic info:::", userBasicInfo && userBasicInfo);
@@ -331,8 +344,17 @@ const SubscriberKycStepsComponent = () => {
         stepStatus: "pending",
       },
     ]);
-    setStepIndex(3);
-  }, []); // TODO: add a kyc status dependency and update the steps based on the kyc status
+
+    if (kycStatus?.personal_info_complete) {
+      setStepIndex(4);
+    }
+    if (kycStatus?.vehicle_info_complete) {
+      setStepIndex(5);
+    }
+    if (!kycStatus?.personal_info_complete) {
+      setStepIndex(3);
+    }
+  }, [kycStatus]); // TODO: add a kyc status dependency and update the steps based on the kyc status
 
   useEffect(() => {
     setVehicleDetails((prev) => ({

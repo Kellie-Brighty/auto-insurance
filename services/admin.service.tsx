@@ -9,7 +9,7 @@ const GetAllPolicies = async () => {
 };
 
 const AgentActivation = async (status: string, agent_id: any) => {
-  return await api.post(`/agent/activation`, { status, agent_id });
+  return await api.post(`/admin/agent/activation`, { status, agent_id });
 };
 
 const GetAllClaims = async () => {
