@@ -16,66 +16,66 @@ const ApiResponseTable = () => {
   const [policiesTotalPages, setPoliciesTotalPages] = useState<number>(0);
   const [policiesCurrentPage, setPoliciesCurrentPage] = useState<number>(0);
 
-  useEffect(() => {
-    setPoliciesHeaders([
-      { id: 0, label: <FormCheckboxComponent /> },
-      { id: 1, label: <span>Policy Name</span> },
-      { id: 2, label: <span>Policy Number</span> },
-      { id: 3, label: <span>Premium</span> },
-      { id: 4, label: <span>Server Name</span> },
-      { id: 5, label: <span>Status</span> },
-    ]);
+  // useEffect(() => {
+  //   setPoliciesHeaders([
+  //     { id: 0, label: <FormCheckboxComponent /> },
+  //     { id: 1, label: <span>Policy Name</span> },
+  //     { id: 2, label: <span>Policy Number</span> },
+  //     { id: 3, label: <span>Premium</span> },
+  //     { id: 4, label: <span>Server Name</span> },
+  //     { id: 5, label: <span>Status</span> },
+  //   ]);
 
-    setPoliciesRows([
-      {
-        id: 1,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>Middleware Server</span>,
-          5: <ApiStatusChips type="not_delivered" />,
-        },
-      },
-      {
-        id: 2,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>Middleware Server</span>,
-          5: <ApiStatusChips type="delivered" />,
-        },
-      },
-      {
-        id: 3,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>Middleware Server</span>,
-          5: <ApiStatusChips type="not_delivered" />,
-        },
-      },
-      {
-        id: 4,
-        data: {
-          0: <FormCheckboxComponent />,
-          1: <span>Auto Insurance - Monthly</span>,
-          2: <span>UIC/ERT/MIZP/164</span>,
-          3: <span>₦625,000</span>,
-          4: <span>Middleware Server</span>,
-          5: <ApiStatusChips type="delivered" />,
-        },
-      },
-    ]);
+  //   setPoliciesRows([
+  //     {
+  //       id: 1,
+  //       data: {
+  //         0: <FormCheckboxComponent />,
+  //         1: <span>Auto Insurance - Monthly</span>,
+  //         2: <span>UIC/ERT/MIZP/164</span>,
+  //         3: <span>₦625,000</span>,
+  //         4: <span>Middleware Server</span>,
+  //         5: <ApiStatusChips type="not_delivered" />,
+  //       },
+  //     },
+  //     {
+  //       id: 2,
+  //       data: {
+  //         0: <FormCheckboxComponent />,
+  //         1: <span>Auto Insurance - Monthly</span>,
+  //         2: <span>UIC/ERT/MIZP/164</span>,
+  //         3: <span>₦625,000</span>,
+  //         4: <span>Middleware Server</span>,
+  //         5: <ApiStatusChips type="delivered" />,
+  //       },
+  //     },
+  //     {
+  //       id: 3,
+  //       data: {
+  //         0: <FormCheckboxComponent />,
+  //         1: <span>Auto Insurance - Monthly</span>,
+  //         2: <span>UIC/ERT/MIZP/164</span>,
+  //         3: <span>₦625,000</span>,
+  //         4: <span>Middleware Server</span>,
+  //         5: <ApiStatusChips type="not_delivered" />,
+  //       },
+  //     },
+  //     {
+  //       id: 4,
+  //       data: {
+  //         0: <FormCheckboxComponent />,
+  //         1: <span>Auto Insurance - Monthly</span>,
+  //         2: <span>UIC/ERT/MIZP/164</span>,
+  //         3: <span>₦625,000</span>,
+  //         4: <span>Middleware Server</span>,
+  //         5: <ApiStatusChips type="delivered" />,
+  //       },
+  //     },
+  //   ]);
 
-    setPoliciesTotalPages(50);
-    setPoliciesCurrentPage(1);
-  }, []);
+  //   setPoliciesTotalPages(50);
+  //   setPoliciesCurrentPage(1);
+  // }, []);
 
   return (
     <div>

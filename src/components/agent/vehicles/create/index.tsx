@@ -11,15 +11,37 @@ import ButtonComponent from "@/common/button/index.component";
 import StepsComponent, { Step } from "@/common/steps/index.component";
 import useUserBasicInfo from "@/hooks/useUserBasicInfo";
 import AgentLayout from "@/layouts/agent/index.layout";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../../../../services/Api";
+import Image from "next/image";
+import agentService from "../../../../../services/agent.service";
+import DialogComponent from "@/common/dialog/index.component";
 
 const SubscriberCreateVehicleComponent = () => {
   const { userBasicInfo } = useUserBasicInfo();
+  const [copyState, setCopyState] = useState(false);
+  const [linkToCpy, setLinkToCopy] = useState("");
+  const [isCopied, setIsCopied] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(linkToCpy).then(() => {
+      setIsCopied(true);
+
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      timerRef.current = window.setTimeout(() => {
+        setIsCopied(false);
+      }, 3000);
+    });
+  };
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const { GeneratePaymentLink } = agentService;
 
   const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
     carName: "",
@@ -65,20 +87,28 @@ const SubscriberCreateVehicleComponent = () => {
     if (stepIndex === 1) {
       setLoading(true);
       try {
-        const vehicle = await api.post(`/vehicle`, {
-          user_id: userBasicInfo?.basic_info.vehicle.user_id,
-          vehicleName: vehicleDetails.carName,
-          vehicleWorth: vehicleDetails.carWorth,
-          vehicleYear: vehicleDetails.year,
-          vehicleType: vehicleDetails.carType,
-          vehicleColor: vehicleDetails.carColor,
-          plateNumber: vehicleDetails.plateNumber,
-          chasisNumber: vehicleDetails.chassisNumber,
-          engineNumber: vehicleDetails.engineNumber,
-        });
+        const subscriberData = localStorage.getItem("SubscriberDataOnAgent");
 
-        setVehicleID(vehicle.data.data.id);
-        setLoading(false);
+        if (subscriberData) {
+          const subscriberDataParsed = JSON.parse(subscriberData) as any;
+          if (subscriberDataParsed) {
+            const vehicle = await api.post(`/vehicle`, {
+              user_id: subscriberDataParsed.id,
+              vehicleName: vehicleDetails.carName,
+              vehicleWorth: vehicleDetails.carWorth,
+              vehicleYear: vehicleDetails.year,
+              vehicleType: vehicleDetails.carType,
+              vehicleColor: vehicleDetails.carColor,
+              plateNumber: vehicleDetails.plateNumber,
+              chasisNumber: vehicleDetails.chassisNumber,
+              engineNumber: vehicleDetails.engineNumber,
+              agent_id: userBasicInfo?.basic_info.policy.user_id,
+            });
+
+            setVehicleID(vehicle.data.data.id);
+            setLoading(false);
+          }
+        }
       } catch (error) {
         console.log("Something went wrong: ", error);
         setLoading(false);
@@ -87,7 +117,7 @@ const SubscriberCreateVehicleComponent = () => {
     } else if (stepIndex === 3) {
       setLoading(true);
       try {
-        await api.post(`/vehicle/media`, {
+        const res = await api.post(`/vehicle/media`, {
           vehicle_dashboard: vehicleImagesDetails.dashboard,
           vehicle_front: vehicleImagesDetails.frontSide,
           vehicle_left_side: vehicleImagesDetails.leftSide,
@@ -96,6 +126,30 @@ const SubscriberCreateVehicleComponent = () => {
           vehicle_video: vehicleVideoDetails.video,
           vehicle_id: vehicleID,
         });
+
+        if (res.status === 200 || res.status === 201) {
+          const subscriberData = localStorage.getItem("SubscriberDataOnAgent");
+
+          if (subscriberData) {
+            const subscriberDataParsed = JSON.parse(subscriberData) as any;
+            if (subscriberDataParsed) {
+              const res = await GeneratePaymentLink(
+                subscriberDataParsed.email,
+                userBasicInfo?.basic_info.policy.policy_amount
+              );
+              console.log(res.data);
+              if (res.status === 200 || res.status === 201) {
+                const payment_url =
+                  res.data.paystack_response.data.authorization_url;
+
+                if (payment_url) {
+                  setCopyState(true);
+                  setLinkToCopy(payment_url);
+                }
+              }
+            }
+          }
+        }
         setLoading(false);
       } catch (error) {
         console.log("Something went wrong: ", error);
@@ -115,7 +169,11 @@ const SubscriberCreateVehicleComponent = () => {
         )
       );
 
-      setStepIndex(stepIndex + 1);
+      if (stepIndex === 3) {
+        return;
+      } else {
+        setStepIndex(stepIndex + 1);
+      }
     }
   };
 
@@ -174,6 +232,44 @@ const SubscriberCreateVehicleComponent = () => {
           <></>
         )}
 
+        <DialogComponent show={copyState} onClose={() => setCopyState(false)}>
+          <div className={`p-[24px]`}>
+            <p className={`text-[24px] font-bold font-grotesk`}>
+              Send the referral link{" "}
+            </p>
+            <p className={`mt-[8px] text-[#64748B] text-[15px]`}>
+              Send referral link to subscriber to make for the policy{" "}
+            </p>
+
+            <div
+              className={`mt-[24px] border-[#DCE5F0] border-[1px] 
+              rounded-full flex items-center p-[16px] justify-between`}
+            >
+              <p
+                className={`font-inter font-semibold text-[#64748B] text-[16px]`}
+              >
+                {linkToCpy ? linkToCpy : null}
+              </p>
+              <div
+                className={`flex items-center space-x-5 cursor-pointer`}
+                onClick={handleCopy}
+              >
+                <Image
+                  src={"/assets/agent/copy-gray.svg"}
+                  alt="copy"
+                  width={22}
+                  height={22}
+                />
+                <p
+                  className={`font-inter font-semibold text-[#64748B] text-[16px]`}
+                >
+                  {isCopied ? "Copied to clipboard" : "Copy link"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </DialogComponent>
+
         <div className={"flex items-center justify-end gap-3"}>
           <ButtonComponent
             size={"base"}
@@ -187,7 +283,21 @@ const SubscriberCreateVehicleComponent = () => {
             variant={"filled"}
             onClick={handleNextStep}
           >
-            {loading ? "Wait..." : "Next Step"}
+            {loading ? (
+              "Wait..."
+            ) : stepIndex === 3 ? (
+              <p className={`flex items-center space-x-3`}>
+                Send the referral link{" "}
+                <Image
+                  src={"/assets/agent/copy.svg"}
+                  alt="copy"
+                  width={22}
+                  height={22}
+                />
+              </p>
+            ) : (
+              "Next Step"
+            )}
           </ButtonComponent>
         </div>
       </div>

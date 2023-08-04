@@ -4,10 +4,34 @@ import FormInputComponent from "@/common/form-input/index.component";
 import FormSelectComponent from "@/common/form-select/index.component";
 import AgentApprovalTable from "@/components/admin/AgentApprovalTable";
 import DashboardStatistics from "@/components/admin/DashboardStatistics";
-import AdminLayout from "@/layouts/admin/index.layout";
+import AdminLayout, {
+  ManagementReportData,
+} from "@/layouts/admin/index.layout";
 import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useEffect, useState } from "react";
 
 const AgentApproval = () => {
+  const [totalAgent, setTotalAgent] = useState(0);
+  const [pendingAgent, setPendingAgent] = useState(0);
+  const [approvedAgent, setApprovedAgent] = useState(0);
+  const [rejectedAgent, setRejectedAgent] = useState(0);
+
+  const fetchReport = () => {
+    const reportData = localStorage.getItem("ManagementReport");
+    let parsedData: ManagementReportData | null = null;
+    if (reportData) {
+      parsedData = JSON.parse(reportData) as ManagementReportData;
+      setTotalAgent(parsedData.total_agent);
+      // setPendingPolicies(parsedData.pending_policies);
+      // setInactivePolicies(parsedData.inactive_commission_amount);
+      // setExpiredPolices(parsedData.expired_policies);
+    }
+  };
+
+  useEffect(() => {
+    fetchReport();
+  }, []);
+
   return (
     <AdminLayout
       title="Agent Approval"
@@ -17,16 +41,16 @@ const AgentApproval = () => {
         <DashboardStatistics
           firstBoxImageUrl="/assets/admin/total-agents.png"
           firstBoxTitle="Total Agents"
-          firstBoxPrice="40,555"
+          firstBoxPrice={totalAgent}
           secondBoxImageUrl="/assets/admin/pending-agents.png"
           secondBoxTitle="Pending Agents"
-          secondBoxPrice="40,555"
+          secondBoxPrice={pendingAgent}
           thirdBoxImageUrl="/assets/admin/approved-agents.png"
           thirdBoxTitle="Approved Agents"
-          thirdBoxPrice="40,555"
+          thirdBoxPrice={approvedAgent}
           fourthBoxImageUrl="/assets/admin/rejected-agents.png"
           fourthBoxTitle="Rejected Agents"
-          fourthBoxPrice="40,555"
+          fourthBoxPrice={rejectedAgent}
         />
 
         <div className={"flex items-center justify-between gap-8"}>

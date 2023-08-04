@@ -133,6 +133,10 @@ const AgentKycStepsComponent = () => {
               });
 
               if (res.status === 200 || res.status === 201) {
+                localStorage.setItem(
+                  "SubscriberDataOnAgent",
+                  JSON.stringify(res.data.subscriber)
+                );
                 console.log(res.data);
                 await api.post(`/subscriber/id-card`, {
                   id_front: idCardFrontURL,
