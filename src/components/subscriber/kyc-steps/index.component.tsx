@@ -331,17 +331,30 @@ const SubscriberKycStepsComponent = () => {
       {
         stepIndex: 3,
         stepLabel: "Personal Details",
-        stepStatus: "in-progress",
+        stepStatus: kycStatus?.personal_info_complete
+          ? "completed"
+          : "in-progress",
       },
       {
         stepIndex: 4,
         stepLabel: "Car Details",
-        stepStatus: "pending",
+        stepStatus:
+          kycStatus?.personal_info_complete && kycStatus?.vehicle_info_complete
+            ? "completed"
+            : kycStatus?.personal_info_complete &&
+              !kycStatus?.vehicle_info_complete
+            ? "in-progress"
+            : "pending",
       },
       {
         stepIndex: 5,
         stepLabel: "Payment",
-        stepStatus: "pending",
+        stepStatus:
+          kycStatus?.vehicle_info_complete && kycStatus?.kyc_complete
+            ? "completed"
+            : kycStatus?.vehicle_info_complete && !kycStatus?.kyc_complete
+            ? "in-progress"
+            : "pending",
       },
     ]);
 
