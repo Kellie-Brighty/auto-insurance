@@ -1,7 +1,6 @@
 import ExportButtonComponent from "@/common/export-btn/index.component";
 import FormInputComponent from "@/common/form-input/index.component";
 import FormSelectComponent from "@/common/form-select/index.component";
-import DashboardStatistics from "@/components/admin/DashboardStatistics";
 import ManageUserTable from "@/components/admin/ManageUserTable";
 import AdminLayout from "@/layouts/admin/index.layout";
 import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
