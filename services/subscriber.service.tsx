@@ -14,7 +14,7 @@ const UpdatedSubscriberInfoKYC = async (
   lastname: string,
   homeAddress: string,
   id_type: string,
-  user_id: any
+  user_id: any,
 ) => {
   return await api.put(`/subscriber/${user_id}`, {
     firstName,
@@ -28,7 +28,7 @@ const UpdatedSubscriberInfoKYC = async (
 const SubscriberID = async (
   id_front: string,
   id_back: string,
-  user_id: any
+  user_id: any,
 ) => {
   return await api.post(
     `/subscriber/id-card`,
@@ -41,12 +41,12 @@ const SubscriberID = async (
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
+    },
   );
 };
 
-const GetSubscriberVehicles = async (user_id: any) => {
-  return await api.get(`vehicle?user_id=${user_id}`);
+const GetSubscriberVehicles = async (user_id: any, page: any) => {
+  return await api.get(`vehicle?user_id=${user_id}&page=${page}`);
 };
 
 const CreateVehicle = async (
@@ -58,7 +58,7 @@ const CreateVehicle = async (
   vehicleType: string,
   plateNumber: string,
   chasisNumber: string,
-  engineNumber: string
+  engineNumber: string,
 ) => {
   return await api.post(`/vehicle`, {
     user_id,
