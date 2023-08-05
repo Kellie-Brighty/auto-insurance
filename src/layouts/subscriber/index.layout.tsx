@@ -2,6 +2,7 @@ import Image from "next/image";
 import {
   BellIcon,
   ClipboardIcon,
+  Cog6ToothIcon,
   CreditCardIcon,
   DocumentTextIcon,
   Squares2X2Icon,
@@ -42,6 +43,12 @@ const links = [
     Icon: <CreditCardIcon className={"w-8 h-8"} />,
     label: "Transactions",
     href: "/subscriber/transactions",
+  },
+  {
+    id: 5,
+    Icon: <Cog6ToothIcon className={"w-8 h-8"} />,
+    label: "Settings",
+    href: "/subscriber/settings/personal-information",
   },
 ];
 
