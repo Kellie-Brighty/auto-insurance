@@ -83,7 +83,9 @@ const GetEstimateForSubscriberComponent = () => {
           >
             <option value="">Select a vehicle</option>
             {VehicleJson.map((vehicle) => (
-              <option value={vehicle.Abadal}>{vehicle.Abadal}</option>
+              <option key={vehicle.Abadal} value={vehicle.Abadal}>
+                {vehicle.Abadal}
+              </option>
             ))}
           </FormSelectComponent>
         </div>
@@ -100,7 +102,9 @@ const GetEstimateForSubscriberComponent = () => {
           >
             <option value="">Select your car year</option>
             {YearJson.map((year) => (
-              <option value={year.value}>{year.value}</option>
+              <option key={year.value} value={year.value}>
+                {year.value}
+              </option>
             ))}
           </FormSelectComponent>
         </div>

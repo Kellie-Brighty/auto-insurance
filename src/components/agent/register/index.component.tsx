@@ -168,7 +168,9 @@ const RegisterAgentComponent = () => {
           >
             <option>Choose your state</option>
             {States.map((state) => (
-              <option value={state.state}>{state.state}</option>
+              <option key={state.state} value={state.state}>
+                {state.state}
+              </option>
             ))}
           </FormSelectComponent>
         </div>
