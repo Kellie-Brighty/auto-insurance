@@ -108,6 +108,10 @@ const SubscriberCreateVehicleComponent = () => {
             setVehicleID(vehicle.data.data.id);
             setLoading(false);
           }
+        } else {
+          setLoading(false);
+          alert("No User data");
+          return;
         }
       } catch (error) {
         console.log("Something went wrong: ", error);
