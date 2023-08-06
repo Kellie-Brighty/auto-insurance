@@ -86,12 +86,14 @@ const PersonalDetailsComponent: React.FC<PersonalDetailsComponentProps> = ({
             defaultValue={personalDetails.id_type}
             onChange={handleChange}
           >
+            <option>Select here</option>
             <option value={"National Identification Card"}>
               National Identification Card
             </option>
             <option value={"International Passport"}>
               International Passport
             </option>
+            <option value={"Driver License"}>Driver License</option>
           </FormSelectComponent>
         </div>
 

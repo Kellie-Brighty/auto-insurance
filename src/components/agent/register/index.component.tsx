@@ -4,6 +4,7 @@ import ButtonComponent from "@/common/button/index.component";
 import { useState } from "react";
 import authService from "../../../../services/auth.service";
 import { useRouter } from "next/router";
+import States from "./states.json";
 
 const RegisterAgentComponent = () => {
   const [firstName, setFirstName] = useState("");
@@ -165,9 +166,10 @@ const RegisterAgentComponent = () => {
             value={branch}
             onChange={(e) => setBranch(e.target.value)}
           >
-            <option value={"Lagos"}>Lagos State</option>
-            <option value={"Osun"}>Osun State</option>
-            <option value={"Oyo"}>Oyo State</option>
+            <option>Choose your state</option>
+            {States.map((state) => (
+              <option value={state.state}>{state.state}</option>
+            ))}
           </FormSelectComponent>
         </div>
 
@@ -179,6 +181,7 @@ const RegisterAgentComponent = () => {
             value={idType}
             onChange={(e) => setIdType(e.target.value)}
           >
+            <option>Select here</option>
             <option value={"internationalPassport"}>
               International Passport
             </option>

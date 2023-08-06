@@ -5,6 +5,8 @@ import { useState, useContext } from "react";
 import { useRouter } from "next/router";
 import { GlobalContext } from "../../../../services/context";
 import authService from "../../../../services/auth.service";
+import VehicleJson from "./carmodelb.json";
+import YearJson from "./year.json";
 
 const GetEstimateForSubscriberComponent = () => {
   const router = useRouter();
@@ -77,16 +79,17 @@ const GetEstimateForSubscriberComponent = () => {
             onChange={(e) =>
               setStates({ ...states, vehicleName: e.target.value })
             }
+            style={{ maxHeight: 200, overflowY: "auto" }}
           >
-            <option value={"Toyota"}>Toyota</option>
-            <option value={"Lexus"}>Lexus</option>
-            <option value={"Mercedes"}>Mercedes</option>
+            <option value="">Select a vehicle</option>
+            {VehicleJson.map((vehicle) => (
+              <option value={vehicle.Abadal}>{vehicle.Abadal}</option>
+            ))}
           </FormSelectComponent>
         </div>
 
         <div className={"col-span-12 lg:col-span-6"}>
-          <FormInputComponent
-            type={"year"}
+          <FormSelectComponent
             name={"year"}
             required={true}
             label={"Year"}
@@ -94,7 +97,12 @@ const GetEstimateForSubscriberComponent = () => {
             onChange={(e) => {
               setStates({ ...states, vehicleYear: e.target.value });
             }}
-          />
+          >
+            <option value="">Select your car year</option>
+            {YearJson.map((year) => (
+              <option value={year.value}>{year.value}</option>
+            ))}
+          </FormSelectComponent>
         </div>
 
         <div className={"col-span-12 lg:col-span-6"}>
