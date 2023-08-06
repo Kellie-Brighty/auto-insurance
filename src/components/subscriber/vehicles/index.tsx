@@ -49,19 +49,25 @@ const SubscriberVehiclesComponent = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
   const [vehiclesTotalPages, setVehiclesTotalPages] = useState(0);
-  const [vehiclesCurrentPage, setVehiclesCurrentPage] = useState(0);
+  const [vehiclesCurrentPage, setVehiclesCurrentPage] = useState(1);
   const router = useRouter();
   const { GetSubscriberVehicles } = subscriberService;
 
-  const getVehiclesAction = async () => {
+  const getVehiclesAction = async (pageNumber: any) => {
     const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
 
     if (autoFlexUserDataString) {
       const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
       try {
-        const res = await GetSubscriberVehicles(autoFlexUserData.id);
+        const res = await GetSubscriberVehicles(
+          autoFlexUserData.id,
+          pageNumber,
+        );
         console.log(res.data.data);
         setVehicles(res.data.data.vehicle);
+
+        // Backend guy needs to add these properties:
+        setVehiclesTotalPages(res.data.data.totalPages || 50);
       } catch (err: any) {
         console.log(err.message);
       }
@@ -69,10 +75,8 @@ const SubscriberVehiclesComponent = () => {
   };
 
   useEffect(() => {
-    setVehiclesTotalPages(50);
-    setVehiclesCurrentPage(1);
-    getVehiclesAction();
-  }, []);
+    getVehiclesAction(vehiclesCurrentPage);
+  }, [vehiclesCurrentPage]);
 
   return (
     <SubscriberLayout title={"Vehicles"} caption={"Manage your vehicles."}>
@@ -131,7 +135,9 @@ const SubscriberVehiclesComponent = () => {
               <PaginationComponent
                 totalPages={vehiclesTotalPages}
                 currentPage={vehiclesCurrentPage}
-                onPageChange={() => {}}
+                onPageChange={(page) => {
+                  setVehiclesCurrentPage(page);
+                }}
               />
             </div>
           </div>
