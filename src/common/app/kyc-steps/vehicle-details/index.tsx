@@ -4,6 +4,7 @@ import FormSelectComponent from "@/common/form-select/index.component";
 import Image from "next/image";
 import React from "react";
 import VehicleJson from "./carmodelb.json";
+import ColorJson from "./colors.json";
 
 export interface VehicleDetails {
   vehicleName: string;
@@ -126,9 +127,12 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
               defaultValue={vehicleDetails.vehicleColor}
               onChange={handleChange}
             >
-              <option>Black</option>
-              <option>Red</option>
-              <option>Blue</option>
+              <option value="">Select a color</option>
+              {ColorJson.map((color) => (
+                <option key={color} value={color}>
+                  {color}
+                </option>
+              ))}
             </FormSelectComponent>
           </div>
 

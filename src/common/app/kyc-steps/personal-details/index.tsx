@@ -94,6 +94,8 @@ const PersonalDetailsComponent: React.FC<PersonalDetailsComponentProps> = ({
               International Passport
             </option>
             <option value={"Driver License"}>Driver License</option>
+            <option value={"Driver License"}>Voter's Card</option>
+            <option value={"Driver License"}>Passport Photograph</option>
           </FormSelectComponent>
         </div>
 
