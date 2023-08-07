@@ -253,7 +253,7 @@ export default function Home() {
           <div className={"flex flex-wrap items-center justify-center gap-8"}>
             <div
               className={
-                "w-full lg:flex-1 p-8 flex items-center gap-4 bg-white border border-gray-dark rounded-md"
+                "w-full lg:flex-1 p-8 flex items-center gap-4 bg-white border border-gray-dark rounded-md h-[200px]"
               }
             >
               <div className={"p-4 bg-gray-main rounded-full"}>
@@ -272,7 +272,7 @@ export default function Home() {
 
             <div
               className={
-                "w-full lg:flex-1 p-8 flex items-center gap-4 bg-white border border-gray-dark rounded-md"
+                "w-full lg:flex-1 p-8 flex items-center gap-4 bg-white border border-gray-dark rounded-md h-[200px]"
               }
             >
               <div className={"p-4 bg-gray-main rounded-full"}>
@@ -291,7 +291,7 @@ export default function Home() {
 
             <div
               className={
-                "w-full lg:flex-1 p-8 flex items-center gap-4 bg-white border border-gray-dark rounded-md"
+                "w-full lg:flex-1 p-8 flex items-center gap-4 bg-white border border-gray-dark rounded-md h-[200px]"
               }
             >
               <div className={"p-4 bg-gray-main rounded-full"}>
