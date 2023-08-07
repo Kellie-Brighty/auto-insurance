@@ -70,7 +70,7 @@ export default function Home() {
               <button
                 className={"text-sm lg:text-xl font-sans"}
                 onClick={() => {
-                  setOpenPremiumCalculatorDialog(true);
+                  setOpenGetEstimateDialog(true);
                 }}
               >
                 Get Estimate
