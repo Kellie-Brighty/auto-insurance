@@ -3,6 +3,7 @@ import FormInputComponent from "@/common/form-input/index.component";
 import FormSelectComponent from "@/common/form-select/index.component";
 import Image from "next/image";
 import React from "react";
+import VehicleJson from "./carmodelb.json";
 
 export interface VehicleDetails {
   vehicleName: string;
@@ -108,9 +109,12 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
               defaultValue={vehicleDetails.vehicleType}
               onChange={handleChange}
             >
-              <option>Toyota</option>
-              <option>Toyota</option>
-              <option>Toyota</option>
+              <option value="">Select a vehicle</option>
+              {VehicleJson.map((vehicle) => (
+                <option key={vehicle.Abadal} value={vehicle.Abadal}>
+                  {vehicle.Abadal}
+                </option>
+              ))}
             </FormSelectComponent>
           </div>
 
@@ -123,8 +127,8 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
               onChange={handleChange}
             >
               <option>Black</option>
-              <option>Black</option>
-              <option>Black</option>
+              <option>Red</option>
+              <option>Blue</option>
             </FormSelectComponent>
           </div>
 
