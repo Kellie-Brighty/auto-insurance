@@ -98,9 +98,10 @@ export default function AdminOverview() {
     let parsedData: ManagementReportData | null = null;
     if (reportData) {
       parsedData = JSON.parse(reportData) as ManagementReportData;
+      console.log(parsedData);
       setActivePolicies(parsedData.active_policies);
       setPendingPolicies(parsedData.pending_policies);
-      setInactivePolicies(parsedData.inactive_commission_amount);
+      setInactivePolicies(parsedData.expired_policies);
       setExpiredPolices(parsedData.expired_policies);
     }
   };

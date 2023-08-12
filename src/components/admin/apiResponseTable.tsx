@@ -8,6 +8,7 @@ import ButtonComponent from "@/common/button/index.component";
 import SubscriberPolicyStatusChipsComponent from "../subscriber/policies/status-chips/index.component";
 import Image from "next/image";
 import ApiStatusChips from "../subscriber/policies/api-chips/index.components";
+import api from "../../../services/Api";
 
 const ApiResponseTable = () => {
   const [policiesHeaders, setPoliciesHeaders] = useState<TableHeader[]>([]);
@@ -15,6 +16,42 @@ const ApiResponseTable = () => {
 
   const [policiesTotalPages, setPoliciesTotalPages] = useState<number>(0);
   const [policiesCurrentPage, setPoliciesCurrentPage] = useState<number>(0);
+
+  const getApiResponse = async () => {
+    setPoliciesHeaders([
+      { id: 0, label: <FormCheckboxComponent /> },
+      { id: 1, label: <span>Policy Name</span> },
+      { id: 2, label: <span>Policy Number</span> },
+      { id: 3, label: <span>Premium</span> },
+      { id: 4, label: <span>Server Name</span> },
+      { id: 5, label: <span>Status</span> },
+    ]);
+
+    const res = await api.get(`/developer/api-response`);
+    if (res.status === 200 || res.status === 201) {
+      setPoliciesRows(
+        res.data.data.map((policy: any) => ({
+          id: policy.id,
+          data: {
+            0: <FormCheckboxComponent />,
+            1: policy.policyName ? policy.policyName : "---",
+            2: policy.policyNumber ? policy.policyNumber : "---",
+            3: policy.policy_amount ? policy.policy_amount : "---",
+            4: policy.serverName ? policy.serverName : "---",
+            5: policy.status ? (
+              <SubscriberPolicyStatusChipsComponent type={policy.status} />
+            ) : (
+              "---"
+            ),
+          },
+        }))
+      );
+    }
+  };
+
+  useEffect(() => {
+    getApiResponse();
+  }, []);
 
   // useEffect(() => {
   //   setPoliciesHeaders([

@@ -14,7 +14,7 @@ const UpdatedSubscriberInfoKYC = async (
   lastname: string,
   homeAddress: string,
   id_type: string,
-  user_id: any,
+  user_id: any
 ) => {
   return await api.put(`/subscriber/${user_id}`, {
     firstName,
@@ -28,7 +28,7 @@ const UpdatedSubscriberInfoKYC = async (
 const SubscriberID = async (
   id_front: string,
   id_back: string,
-  user_id: any,
+  user_id: any
 ) => {
   return await api.post(
     `/subscriber/id-card`,
@@ -41,7 +41,7 @@ const SubscriberID = async (
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    },
+    }
   );
 };
 
@@ -58,7 +58,7 @@ const CreateVehicle = async (
   vehicleType: string,
   plateNumber: string,
   chasisNumber: string,
-  engineNumber: string,
+  engineNumber: string
 ) => {
   return await api.post(`/vehicle`, {
     user_id,
@@ -81,8 +81,8 @@ const MakePayment = async (email: any, amount: any) => {
   return await api.get(`/payment/paystack/pay?email=${email}&amount=${amount}`);
 };
 
-const VerifyPayment = async (reference: any) => {
-  return await api.get(`/payment/paystack/verify/${reference}`);
+const VerifyPayment = async (reference: any, policy_id: any) => {
+  return await api.post(`/payment/paystack/confirm`, { reference, policy_id });
 };
 
 const FetchKYCStatus = async (user_id: any) => {

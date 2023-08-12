@@ -23,6 +23,13 @@ const AgentPoliciesComponent = () => {
   const [policiesCurrentPage, setPoliciesCurrentPage] = useState<number>(0);
   const { GetPolicies } = agentService;
 
+  const formatCurrency = (number: any) => {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: "NGN",
+    }).format(number);
+  };
+
   const getPoliciesAction = async () => {
     setPoliciesHeaders([
       { id: 0, label: <FormCheckboxComponent /> },
@@ -47,12 +54,25 @@ const AgentPoliciesComponent = () => {
             id: policy.id,
             data: {
               0: <FormCheckboxComponent />,
-              1: policy.policyName,
-              2: policy.policyNumber === null ? "---" : policy.policyNumber,
-              3: policy.policy_amount,
-              4: policy.start_date === null ? "---" : policy.start_date,
-              5: policy.end_date === null ? "---" : policy.end_date,
-              6: <SubscriberPolicyStatusChipsComponent type={policy.status} />,
+              1: policy.Policy.policyName,
+              2:
+                policy.Policy.policyNumber === null
+                  ? "---"
+                  : policy.Policy.policyNumber,
+              3: formatCurrency(policy.Policy.policy_amount),
+              4:
+                policy.Policy.start_date === null
+                  ? "---"
+                  : policy.Policy.start_date,
+              5:
+                policy.Policy.end_date === null
+                  ? "---"
+                  : policy.Policy.end_date,
+              6: (
+                <SubscriberPolicyStatusChipsComponent
+                  type={policy.Policy.status}
+                />
+              ),
               7: (
                 <ButtonComponent size={"sm"} variant={"outlined"}>
                   <span>View Details</span>

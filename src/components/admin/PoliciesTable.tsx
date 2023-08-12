@@ -16,6 +16,13 @@ const PoliciesTable = () => {
   const [policiesCurrentPage, setPoliciesCurrentPage] = useState<number>(0);
   const { GetAllPolicies } = adminService;
 
+  const formatCurrency = (number: any) => {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: "NGN",
+    }).format(number);
+  };
+
   const getAllPoliciesAction = async () => {
     setPoliciesHeaders([
       { id: 0, label: <FormCheckboxComponent /> },
@@ -38,7 +45,7 @@ const PoliciesTable = () => {
             0: <FormCheckboxComponent />,
             1: policy.policyName,
             2: policy.policyNumber === null ? "---" : policy.policyNumber,
-            3: policy.policy_amount,
+            3: formatCurrency(policy.policy_amount),
             4: policy.start_date === null ? "---" : policy.start_date,
             5: policy.end_date === null ? "---" : policy.end_date,
             6: <SubscriberPolicyStatusChipsComponent type={policy.status} />,

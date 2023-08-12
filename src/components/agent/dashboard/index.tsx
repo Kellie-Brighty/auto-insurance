@@ -52,13 +52,13 @@ const AgentDashboardComponent = () => {
           <AgentNextPremiumComponent />
         </div>
 
-        <div className={"col-span-12 xl:col-span-7"}>
+        {/* <div className={"col-span-12 xl:col-span-7"}>
           <AgentRecentPoliciesComponent />
         </div>
 
         <div className={"col-span-12 xl:col-span-5"}>
           <AgentRecentTransactionsComponent />
-        </div>
+        </div> */}
       </div>
     </AgentLayout>
   );

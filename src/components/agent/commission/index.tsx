@@ -15,6 +15,18 @@ import ButtonComponent from "@/common/button/index.component";
 import agentService from "../../../../services/agent.service";
 import { UserDataType } from "@/components/subscriber/policies/index.component";
 
+interface CommissionSummary {
+  total_commission_amount: number;
+  approved_commission_amount: number;
+  awaiting_approval_commission_amount: number;
+  rejected_commission_amount: number;
+  inactive_commission_amount: number;
+  approved_commission: number;
+  rejected_commission: number;
+  awaiting_approval_commission: number;
+  inactive_commission: number;
+}
+
 const AgentCommissionComponent = () => {
   const [commissionsHeaders, setCommissionsHeaders] = useState<TableHeader[]>(
     []
@@ -25,6 +37,24 @@ const AgentCommissionComponent = () => {
   const [commissionsCurrentPage, setCommissionsCurrentPage] =
     useState<number>(0);
   const { GetCommissions } = agentService;
+  const [commissionSummary, setCommisionSummary] = useState<CommissionSummary>({
+    total_commission_amount: 0,
+    approved_commission_amount: 0,
+    awaiting_approval_commission_amount: 0,
+    rejected_commission_amount: 0,
+    inactive_commission_amount: 0,
+    approved_commission: 0,
+    rejected_commission: 0,
+    awaiting_approval_commission: 0,
+    inactive_commission: 0,
+  });
+
+  const formatCurrency = (number: any) => {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: "NGN",
+    }).format(number);
+  };
 
   const getCommisionsAction = async () => {
     setCommissionsHeaders([
@@ -47,17 +77,55 @@ const AgentCommissionComponent = () => {
         const agentId = parsedData.id;
         const res = await GetCommissions(agentId);
         if (res.status === 200 || res.status === 201) {
+          setCommisionSummary({
+            ...commissionSummary,
+            total_commission_amount:
+              res.data.data.summary.total_commission_amount,
+            approved_commission: res.data.data.summary.approved_commission,
+            awaiting_approval_commission_amount:
+              res.data.data.summary.awaiting_approval_commission_amount,
+            rejected_commission_amount:
+              res.data.data.summary.rejected_commission_amount,
+            inactive_commission_amount:
+              res.data.data.summary.inactive_commission_amount,
+            approved_commission_amount:
+              res.data.data.summary.approved_commission_amount,
+            rejected_commission: res.data.data.summary.rejected_commission,
+            awaiting_approval_commission:
+              res.data.data.summary.awaiting_approval_commission,
+            inactive_commission: res.data.data.summary.inactive_commission,
+          });
           setCommissionsRows(
             res.data.data.commission.map((policy: any) => ({
               id: policy.id,
               data: {
                 0: <FormCheckboxComponent />,
-                1: <span>₦625,000</span>,
-                2: <span>UIC/ERT/MIZP/164</span>,
-                3: <span>₦625,000</span>,
-                4: <span>01.01.2022</span>,
-                5: <span>01.01.2022</span>,
-                6: <SubscriberPolicyStatusChipsComponent type={"active"} />,
+                1: <span>{formatCurrency(policy.commission_amount)}</span>,
+                2: (
+                  <span>
+                    {policy.Policy.policyNumber
+                      ? policy.Policy.policyNumber
+                      : "---"}
+                  </span>
+                ),
+                3: <span>{formatCurrency(policy.Policy.policy_amount)}</span>,
+                4: (
+                  <span>
+                    {policy.Policy.start_date
+                      ? policy.Policy.start_date
+                      : "---"}
+                  </span>
+                ),
+                5: (
+                  <span>
+                    {policy.Policy.end_date ? policy.Policy.end_date : "---"}
+                  </span>
+                ),
+                6: (
+                  <SubscriberPolicyStatusChipsComponent
+                    type={policy.Policy.status}
+                  />
+                ),
                 7: (
                   <ButtonComponent size={"sm"} variant={"outlined"}>
                     <span>View Details</span>
@@ -89,7 +157,11 @@ const AgentCommissionComponent = () => {
           <div className={"col-span-12 lg:col-span-3"}>
             <AgentCommissionStatsCardComponent
               type={"total"}
-              value={123}
+              value={
+                commissionSummary.total_commission_amount
+                  ? commissionSummary.total_commission_amount
+                  : 0
+              }
               change={+12}
             />
           </div>
@@ -97,7 +169,11 @@ const AgentCommissionComponent = () => {
           <div className={"col-span-12 lg:col-span-3"}>
             <AgentCommissionStatsCardComponent
               type={"active"}
-              value={456}
+              value={
+                commissionSummary.approved_commission
+                  ? commissionSummary.approved_commission
+                  : 0
+              }
               change={+16}
             />
           </div>
@@ -105,7 +181,11 @@ const AgentCommissionComponent = () => {
           <div className={"col-span-12 lg:col-span-3"}>
             <AgentCommissionStatsCardComponent
               type={"pending"}
-              value={789}
+              value={
+                commissionSummary.inactive_commission
+                  ? commissionSummary.inactive_commission
+                  : 0
+              }
               change={-8}
             />
           </div>
@@ -113,7 +193,11 @@ const AgentCommissionComponent = () => {
           <div className={"col-span-12 lg:col-span-3"}>
             <AgentCommissionStatsCardComponent
               type={"expired"}
-              value={234}
+              value={
+                commissionSummary.rejected_commission
+                  ? commissionSummary.rejected_commission
+                  : 0
+              }
               change={-4}
             />
           </div>

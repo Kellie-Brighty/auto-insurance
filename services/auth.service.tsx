@@ -19,7 +19,7 @@ const GetVehichleEstimate = async (value: number) => {
 const RegisterSubscriber = async (
   vehicleName: string,
   vehicleYear: string,
-  vehicleWorth: string,
+  vehicleWorth: number,
   phoneNumber: string,
   email: string,
   amount: string,

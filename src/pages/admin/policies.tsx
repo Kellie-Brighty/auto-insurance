@@ -22,7 +22,7 @@ const Policies = () => {
       parsedData = JSON.parse(reportData) as ManagementReportData;
       setActivePolicies(parsedData.active_policies);
       setPendingPolicies(parsedData.pending_policies);
-      setInactivePolicies(parsedData.inactive_commission_amount);
+      setInactivePolicies(parsedData.expired_policies);
       setExpiredPolices(parsedData.expired_policies);
     }
   };

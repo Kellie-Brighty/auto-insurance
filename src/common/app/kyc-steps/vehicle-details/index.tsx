@@ -14,6 +14,7 @@ export interface VehicleDetails {
   plateNumber: string;
   engineNumber: string;
   chassisNumber: string;
+  vehicleWorth: string;
   vehicleMedia: {
     dashboard: File | null;
     frontSide: File | null;
@@ -81,12 +82,21 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
         </div>
 
         <div className={"p-6 grid grid-cols-12 gap-3"}>
-          <div className={"col-span-12 lg:col-span-12"}>
+          <div className={"col-span-12 lg:col-span-6"}>
             <FormInputComponent
               name={"vehicleName"}
               required={true}
               label={"Which car do you own?"}
               defaultValue={vehicleDetails.vehicleName}
+              onChange={handleChange}
+            />
+          </div>
+          <div className={"col-span-12 lg:col-span-6"}>
+            <FormInputComponent
+              name={"vehicleWorth"}
+              required={true}
+              label={"What's your car worth?"}
+              defaultValue={vehicleDetails.vehicleWorth}
               onChange={handleChange}
             />
           </div>

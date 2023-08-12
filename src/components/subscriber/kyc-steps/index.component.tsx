@@ -59,6 +59,7 @@ const SubscriberKycStepsComponent = () => {
     plateNumber: userBasicInfo?.basic_info.vehicle.plateNumber || "",
     engineNumber: userBasicInfo?.basic_info.vehicle.engineNumber || "",
     chassisNumber: userBasicInfo?.basic_info.vehicle.chasisNumber || "",
+    vehicleWorth: "",
     vehicleMedia: {
       dashboard: null,
       frontSide: null,
@@ -296,9 +297,22 @@ const SubscriberKycStepsComponent = () => {
     fetchKycStatus();
   }, []);
 
+  const activatePolicy = async () => {
+    await api.post(`/policy/${userBasicInfo?.basic_info.policy.id}/activate`);
+  };
+
+  useEffect(() => {
+    if (userBasicInfo) {
+      activatePolicy();
+    }
+  }, [userBasicInfo]);
+
   const verifyPaymentAction = async () => {
     if (reference) {
-      const res = await VerifyPayment(reference);
+      const res = await VerifyPayment(
+        reference,
+        userBasicInfo?.basic_info.policy.id
+      );
       if (res.data.status === "success") {
         await api.put(
           `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
@@ -306,9 +320,13 @@ const SubscriberKycStepsComponent = () => {
             kyc_complete: true,
           }
         );
+        await api.post(`/policy/activation`, {
+          policy_id: userBasicInfo?.basic_info.policy.id,
+        });
         await fetchKycStatus();
         setKycCompleted(true);
       }
+      console.log(res.data);
     }
   };
 

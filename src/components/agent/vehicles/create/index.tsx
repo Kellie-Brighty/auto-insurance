@@ -83,6 +83,177 @@ const SubscriberCreateVehicleComponent = () => {
     }
   };
 
+  // const handleNextStep = async () => {
+  //   const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+  //   if (autoFlexUserDataString) {
+  //     const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+  //     if (stepIndex) {
+  //       switch (stepIndex) {
+  //         case 3:
+  //           console.log(personalDetails);
+  //           setLoading(true);
+
+  //           try {
+  //             const idCardFrontURL = await uploadBase64ImageToFirebaseStorage(
+  //               personalDetails.idCardFront,
+  //               `${uuidv4()}.png`
+  //             );
+
+  //             const idCardBackURL = await uploadBase64ImageToFirebaseStorage(
+  //               personalDetails.idCardBack,
+  //               `${uuidv4()}.png`
+  //             );
+
+  //             const res = await api.post(`/agent/register-subscriber`, {
+  //               firstname: personalDetails.firstName,
+  //               lastname: personalDetails.lastName,
+  //               middlename: personalDetails.middleName,
+  //               homeAddress: personalDetails.homeAddress,
+  //               agent_id: autoFlexUserData.id,
+  //               email: personalDetails.email,
+  //               phoneNumber: personalDetails.phoneNumber,
+  //             });
+
+  //             if (res.status === 200 || res.status === 201) {
+  //               localStorage.setItem(
+  //                 "SubscriberDataOnAgent",
+  //                 JSON.stringify(res.data.subscriber)
+  //               );
+  //               console.log(res.data);
+  //               await api.post(`/subscriber/id-card`, {
+  //                 id_front: idCardFrontURL,
+  //                 id_back: idCardBackURL,
+  //                 user_id: res.data.subscriber.id,
+  //               });
+  //             }
+
+  //             // TODO: add subscriber ID card upload
+
+  //             setLoading(false);
+  //           } catch (error) {
+  //             console.log("Something went wrong: ", error);
+  //             setLoading(false);
+  //             return;
+  //           }
+  //           break;
+  //         case 4:
+  //           console.log(vehicleDetails);
+
+  //           setLoading(true);
+
+  //           try {
+  //             await api.put(
+  //               `/vehicle/${userBasicInfo?.basic_info.vehicle.id}`,
+  //               {
+  //                 ...vehicleDetails,
+  //                 chasisNumber: vehicleDetails.chassisNumber,
+  //                 vehicleMedia: {},
+  //                 vehicleMediaURLs: {},
+  //               }
+  //             );
+
+  //             const vehicleDashboardURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.dashboard,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.dashboard?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleFrontSideURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.frontSide,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.frontSide?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleLeftSideURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.leftSide,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.leftSide?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleBackSideURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.backSide,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.backSide?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleRightSideURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.rightSide,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.rightSide?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleVideoURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.video,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.video?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+
+  //             // TODO: add vehicle media upload
+  //             await api.post(`/vehicle/media`, {
+  //               vehicle_dashboard: vehicleDashboardURL,
+  //               vehicle_front: vehicleFrontSideURL,
+  //               vehicle_left_side: vehicleLeftSideURL,
+  //               vehicle_back: vehicleBackSideURL,
+  //               vehicle_right_side: vehicleRightSideURL,
+  //               vehicle_video: vehicleVideoURL,
+  //               vehicle_id: userBasicInfo?.basic_info.vehicle.id,
+  //             });
+
+  //             setLoading(false);
+  //           } catch (error) {
+  //             console.log("Something went wrong: ", error);
+  //             setLoading(false);
+  //             return;
+  //           }
+  //           break;
+  //         case 5:
+  //           try {
+  //             setLoading(true);
+
+  //             const res = await GeneratePaymentLink(
+  //               personalDetails.email,
+  //               userBasicInfo?.basic_info.policy.policy_amount
+  //             );
+  //             console.log(res.data);
+  //             if (res.status === 200 || res.status === 201) {
+  //               const payment_url =
+  //                 res.data.paystack_response.data.authorization_url;
+
+  //               if (payment_url) {
+  //                 setCopyState(true);
+  //                 setLinkToCopy(payment_url);
+  //               }
+  //             }
+
+  //             setLoading(false);
+  //           } catch (error) {
+  //             console.log("Something went wrong: ", error);
+  //             setLoading(false);
+  //             return;
+  //           }
+  //       }
+
+  //       setSteps((prev) =>
+  //         prev.map((step) =>
+  //           step.stepIndex === stepIndex + 1
+  //             ? { ...step, stepStatus: "in-progress" }
+  //             : step.stepIndex === stepIndex
+  //             ? { ...step, stepStatus: "completed" }
+  //             : step
+  //         )
+  //       );
+
+  //       if (stepIndex === 5) {
+  //         return;
+  //       } else {
+  //         setStepIndex(stepIndex + 1);
+  //       }
+  //     }
+  //   }
+  // };
+
   const handleNextStep = async () => {
     if (stepIndex === 1) {
       setLoading(true);
