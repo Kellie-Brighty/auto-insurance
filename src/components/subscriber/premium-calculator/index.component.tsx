@@ -38,6 +38,7 @@ const SubscriberPremiumCalculatorComponent = () => {
     plan: "",
     loading: false,
     error: "",
+    amount: "",
   });
   const [apiState, setApiState] = useState({
     email: "",
@@ -78,10 +79,9 @@ const SubscriberPremiumCalculatorComponent = () => {
       parsedData = JSON.parse(retrievedRgData) as SavedObjectType;
       parsedData = {
         ...parsedData,
-        amount: "90000",
+        amount: states.amount,
         plan: states.plan,
         hasExcessBuyBack: states.excessBuyBack,
-        policyName: "comprehensive flexi",
       };
       console.log("Updated api state:::", parsedData);
       if (states.plan === "") {
@@ -150,7 +150,13 @@ const SubscriberPremiumCalculatorComponent = () => {
             name={"planType"}
             value={"yearly"}
             checked={states.plan === "yearly"}
-            onChange={(e) => setStates({ ...states, plan: e.target.value })}
+            onChange={(e) =>
+              setStates({
+                ...states,
+                plan: e.target.value,
+                amount: states.yearly.toString(),
+              })
+            }
           />
         </div>
 
@@ -171,7 +177,13 @@ const SubscriberPremiumCalculatorComponent = () => {
             name={"planType"}
             value={"quarterly"}
             checked={states.plan === "quarterly"}
-            onChange={(e) => setStates({ ...states, plan: e.target.value })}
+            onChange={(e) =>
+              setStates({
+                ...states,
+                plan: e.target.value,
+                amount: states.quarterly.toString(),
+              })
+            }
           />
         </div>
 
@@ -192,7 +204,13 @@ const SubscriberPremiumCalculatorComponent = () => {
             name={"planType"}
             value={"monthly"}
             checked={states.plan === "monthly"}
-            onChange={(e) => setStates({ ...states, plan: e.target.value })}
+            onChange={(e) =>
+              setStates({
+                ...states,
+                plan: e.target.value,
+                amount: states.monthly.toString(),
+              })
+            }
           />
         </div>
 
@@ -211,7 +229,13 @@ const SubscriberPremiumCalculatorComponent = () => {
             name={"planType"}
             value={"weekly"}
             checked={states.plan === "weekly"}
-            onChange={(e) => setStates({ ...states, plan: e.target.value })}
+            onChange={(e) =>
+              setStates({
+                ...states,
+                plan: e.target.value,
+                amount: states.weekly.toString(),
+              })
+            }
           />
         </div>
 

@@ -21,7 +21,7 @@ export interface SavedObjectType {
   email: string;
   phoneNumber: string;
   vehicleName: string;
-  vehicleWorth: number;
+  vehicleWorth: string;
   vehicleYear: string;
   amount: string;
   plan: string;
@@ -44,7 +44,7 @@ const AgentPremiumCalculatorComponent = () => {
     email: "",
     phoneNumber: "",
     vehicleName: "",
-    vehicleWorth: 0,
+    vehicleWorth: "",
     vehicleYear: "",
     amount: "",
     plan: "",
