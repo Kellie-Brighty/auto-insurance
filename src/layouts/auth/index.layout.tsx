@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 interface AuthLayoutProps {
@@ -18,12 +19,14 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         className={"w-1/3 max-w-lg max-h-screen p-8 space-y-8 overflow-auto"}
       >
         <div className={"relative w-[310px] h-[56px]"}>
-          <Image
-            layout={"fill"}
-            objectFit={"contain"}
-            src={"/logo.png"}
-            alt={"AutoFlex"}
-          />
+          <Link href="/">
+            <Image
+              layout={"fill"}
+              objectFit={"contain"}
+              src={"/logo.png"}
+              alt={"AutoFlex"}
+            />
+          </Link>
         </div>
 
         <div className={"space-y-6"}>
