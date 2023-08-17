@@ -23,6 +23,19 @@ const RegisterAgentComponent = () => {
   const router = useRouter();
 
   const registerAgentAction = async () => {
+    const data = {
+      firstName,
+      lastName,
+      middleName,
+      gender,
+      dob,
+      phone,
+      email,
+      branch,
+      idType,
+      address,
+    };
+    console.log("data:::", data);
     setLoading(true);
     setError("");
     if (
@@ -117,8 +130,12 @@ const RegisterAgentComponent = () => {
             required={true}
             label={"Gender"}
             value={gender}
-            onChange={(e) => setGender(e.target.value)}
+            onChange={(e) => {
+              console.log("selected gender:::", e.target.value);
+              setGender(e.target.value);
+            }}
           >
+            <option value="">Select Gender</option>
             <option value={"male"}>Male</option>
             <option value={"female"}>Female</option>
             <option value={"others"}>Others</option>

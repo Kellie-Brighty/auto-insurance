@@ -119,7 +119,6 @@ const AgentKycStepsComponent = () => {
         });
 
         if (res.status === 200 || res.status === 201) {
-          alert("success");
           setAgentConfirmed(true);
         }
         setLoading(false);

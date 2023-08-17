@@ -61,10 +61,10 @@ const SubscriberVehiclesComponent = () => {
       try {
         const res = await GetSubscriberVehicles(
           autoFlexUserData.id,
-          pageNumber,
+          pageNumber
         );
         console.log(res.data.data);
-        setVehicles(res.data.data.vehicle);
+        setVehicles(res.data.data);
 
         // Backend guy needs to add these properties:
         setVehiclesTotalPages(res.data.data.totalPages || 50);
@@ -107,7 +107,7 @@ const SubscriberVehiclesComponent = () => {
           </div>
         </div>
 
-        {vehicles.length === 0 ? (
+        {vehicles?.length === 0 ? (
           <div
             className={
               "w-full h-96 p-6 flex flex-col items-center justify-center bg-white rounded-md"
@@ -120,7 +120,7 @@ const SubscriberVehiclesComponent = () => {
           </div>
         ) : (
           <div className={"grid grid-cols-12 gap-3"}>
-            {vehicles.map((vehicle) => (
+            {vehicles?.map((vehicle) => (
               <SubscriberVehicleCardComponent
                 key={vehicle.id}
                 carName={vehicle.vehicleName}

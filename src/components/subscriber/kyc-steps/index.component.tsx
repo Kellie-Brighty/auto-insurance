@@ -17,6 +17,8 @@ import api from "../../../../services/Api";
 import subscriberService from "../../../../services/subscriber.service";
 import { useRouter } from "next/router";
 import { GlobalContext } from "../../../../services/context";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface KYCstatus {
   createdAt: string;
@@ -135,11 +137,15 @@ const SubscriberKycStepsComponent = () => {
             );
 
             // TODO: add subscriber ID card upload
-            await api.post(`/subscriber/id-card`, {
+            const res = await api.post(`/subscriber/id-card`, {
               id_front: idCardFrontURL,
               id_back: idCardBackURL,
               user_id: userBasicInfo?.basic_info.vehicle.user_id,
             });
+
+            if (res.status === 200 || res.status === 201) {
+              toast.success(res.data.message);
+            }
 
             // TODO: update user data in local storage
             const autoFlexUserData = await api.get(
@@ -163,9 +169,10 @@ const SubscriberKycStepsComponent = () => {
 
             await fetchKycStatus();
             setLoading(false);
-          } catch (error) {
+          } catch (error: any) {
             console.log("Something went wrong: ", error);
             setLoading(false);
+            toast.error("Something went wrong!");
             return;
           }
           break;
@@ -178,6 +185,7 @@ const SubscriberKycStepsComponent = () => {
             await api.put(`/vehicle/${userBasicInfo?.basic_info.vehicle.id}`, {
               ...vehicleDetails,
               chasisNumber: vehicleDetails.chassisNumber,
+              vehicleWorth: userBasicInfo?.basic_info.vehicle.vehicleWorth,
               vehicleMedia: {},
               vehicleMediaURLs: {},
             });
@@ -220,7 +228,7 @@ const SubscriberKycStepsComponent = () => {
             );
 
             // TODO: add vehicle media upload
-            await api.post(`/vehicle/media`, {
+            const res = await api.post(`/vehicle/media`, {
               vehicle_dashboard: vehicleDashboardURL,
               vehicle_front: vehicleFrontSideURL,
               vehicle_left_side: vehicleLeftSideURL,
@@ -229,6 +237,10 @@ const SubscriberKycStepsComponent = () => {
               vehicle_video: vehicleVideoURL,
               vehicle_id: userBasicInfo?.basic_info.vehicle.id,
             });
+
+            if (res.status === 200 || res.status === 201) {
+              toast.success(res.data.message);
+            }
 
             // TODO: update vehicle in basic info
             getAndSetUserBasicInfo();
@@ -244,6 +256,7 @@ const SubscriberKycStepsComponent = () => {
             await fetchKycStatus();
           } catch (error) {
             console.log("Something went wrong: ", error);
+            toast.error("Something went wrong!");
             setLoading(false);
             return;
           }
@@ -264,6 +277,7 @@ const SubscriberKycStepsComponent = () => {
               );
               console.log(res.data);
               if (res.status === 200 || res.status === 201) {
+                toast.warn("Please wait, redirecting to payment page...");
                 const payment_url =
                   res.data.paystack_response.data.authorization_url;
 
@@ -273,6 +287,7 @@ const SubscriberKycStepsComponent = () => {
             setLoading(false);
           } catch (error) {
             console.log("Something went wrong: ", error);
+            toast.error("Something went wrong!");
             setLoading(false);
             return;
           }
@@ -295,38 +310,29 @@ const SubscriberKycStepsComponent = () => {
 
   useEffect(() => {
     fetchKycStatus();
+    getAndSetUserBasicInfo();
   }, []);
-
-  const activatePolicy = async () => {
-    await api.post(`/policy/${userBasicInfo?.basic_info.policy.id}/activate`);
-  };
-
-  useEffect(() => {
-    if (userBasicInfo) {
-      activatePolicy();
-    }
-  }, [userBasicInfo]);
 
   const verifyPaymentAction = async () => {
     if (reference) {
-      const res = await VerifyPayment(
-        reference,
-        userBasicInfo?.basic_info.policy.id
-      );
-      if (res.data.status === "success") {
-        await api.put(
-          `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
-          {
-            kyc_complete: true,
-          }
-        );
-        await api.post(`/policy/activation`, {
-          policy_id: userBasicInfo?.basic_info.policy.id,
-        });
-        await fetchKycStatus();
-        setKycCompleted(true);
+      const newPolicyId = localStorage.getItem("New Policy ID");
+
+      if (newPolicyId) {
+        const parsedPlocyId = parseInt(newPolicyId);
+        const res = await VerifyPayment(reference, parsedPlocyId);
+        if (res.data.status === "success") {
+          await api.put(
+            `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+            {
+              kyc_complete: true,
+            }
+          );
+          await api.post(`/policy/${parsedPlocyId}/activate`);
+          await fetchKycStatus();
+          setKycCompleted(true);
+        }
+        console.log(res.data);
       }
-      console.log(res.data);
     }
   };
 
@@ -405,6 +411,18 @@ const SubscriberKycStepsComponent = () => {
       title={"Complete KYC Information"}
       caption={"Provide your personal details and make payment to proceed."}
     >
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className={"space-y-8"}>
         <StepsComponent steps={steps} />
 

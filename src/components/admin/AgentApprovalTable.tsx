@@ -6,6 +6,8 @@ import TableComponent, {
 import FormCheckboxComponent from "@/common/form-checkbox/index.component";
 import Image from "next/image";
 import adminService from "../../../services/admin.service";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Agent {
   branch: string;
@@ -102,9 +104,17 @@ const AgentApprovalTable = () => {
     try {
       const res = await AgentActivation("approved", selectedAgent?.id);
       console.log(res.data);
+      if (res.status === 200 || res.status === 201) {
+        toast.success(res.data.message);
+        setApproveAgentModal(false);
+        setIsAgentTableDialog(false);
+      }
       setApproveLoading(false);
     } catch (err: any) {
       console.log(err.response.data.message);
+      toast.success(err.response.data.message);
+      setApproveAgentModal(false);
+      setIsAgentTableDialog(false);
       setApproveLoading(false);
     }
   };
@@ -114,16 +124,36 @@ const AgentApprovalTable = () => {
 
     try {
       const res = await AgentActivation("rejected", selectedAgent?.id);
+      if (res.status === 200 || res.status === 201) {
+        toast.success(res.data.message);
+        setRejectAgentModal(false);
+        setIsAgentTableDialog(false);
+      }
       console.log(res.data);
       setRejectLoading(false);
     } catch (err: any) {
       console.log(err.response.data.message);
+      toast.success(err.response.data.message);
+      setRejectAgentModal(false);
+      setIsAgentTableDialog(false);
       setRejectLoading(false);
     }
   };
 
   return (
     <div className={"p-6 bg-white rounded-md"}>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       {policiesRows.length !== 0 ? (
         <TableComponent
           headers={policiesHeaders}

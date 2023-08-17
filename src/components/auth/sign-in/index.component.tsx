@@ -6,6 +6,8 @@ import ButtonComponent from "@/common/button/index.component";
 import { useEffect, useState } from "react";
 import authService from "../../../../services/auth.service";
 import { useRouter } from "next/router";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type RetrievedData = {
   email: "ryfajuto@tutuapp.bid";
@@ -18,7 +20,6 @@ type RetrievedData = {
 const SignInComponent = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { SubscriberSignIn, AgentSignIn, AdminSignIn } = authService;
   const router = useRouter();
@@ -26,8 +27,8 @@ const SignInComponent = () => {
   const SignInAction = async () => {
     setLoading(true);
     if (email === "" || password === "") {
-      setErrors("No field should be empy");
       setLoading(false);
+      toast.error("No field should be empy");
     } else {
       try {
         const userState = localStorage.getItem("UserState");
@@ -37,8 +38,12 @@ const SignInComponent = () => {
           console.log(res.data);
           if (res.status === 200 || res.status === 201) {
             localStorage.setItem("AutoFlexUserToken", res.data.accessToken);
-            localStorage.setItem("AutoFlexUserData", JSON.stringify(res.data.data));
+            localStorage.setItem(
+              "AutoFlexUserData",
+              JSON.stringify(res.data.data)
+            );
             const userole = res.data.data.role;
+            toast.success(`${res.data.data.role} Signed In Successfully`);
             if (userole) {
               router.push(`/${userole}/overview`);
             }
@@ -49,8 +54,12 @@ const SignInComponent = () => {
           console.log(res.data);
           if (res.status === 200 || res.status === 201) {
             localStorage.setItem("AutoFlexUserToken", res.data.accessToken);
-            localStorage.setItem("AutoFlexUserData", JSON.stringify(res.data.data));
+            localStorage.setItem(
+              "AutoFlexUserData",
+              JSON.stringify(res.data.data)
+            );
             const userole = res.data.data.role;
+            toast.success(`${res.data.data.role} Signed In Successfully`);
             if (userole) {
               router.push(`/${userole}/overview`);
             }
@@ -61,8 +70,12 @@ const SignInComponent = () => {
           console.log(res.data);
           if (res.status === 200 || res.status === 201) {
             localStorage.setItem("AutoFlexUserToken", res.data.accessToken);
-            localStorage.setItem("AutoFlexUserData", JSON.stringify(res.data.data));
+            localStorage.setItem(
+              "AutoFlexUserData",
+              JSON.stringify(res.data.data)
+            );
             const userole = res.data.data.role;
+            toast.success(`${res.data.data.role} Signed In Successfully`);
             if (userole) {
               router.push(`/${userole}/overview`);
             }
@@ -71,7 +84,8 @@ const SignInComponent = () => {
         }
       } catch (err: any) {
         console.log(err.response.data.message);
-        setErrors(err.response.data.message);
+
+        toast.error(err.response.data.message);
         setLoading(false);
       }
     }
@@ -92,14 +106,25 @@ const SignInComponent = () => {
 
   return (
     <AuthLayout title={"Sign In"}>
-      {errors && <p className={`text-red-500 text-[14px] mb-5`}>{errors}</p>}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+
       <div className={"space-y-3"}>
         <FormInputComponent
           label={"Email or Phone Number"}
           Icon={<EnvelopeIcon className={"w-5 h-5 text-gray-dark"} />}
           value={email}
           onChange={(e) => {
-            setErrors(null);
             setEmail(e.target.value);
           }}
         />
@@ -115,7 +140,6 @@ const SignInComponent = () => {
           }
           value={password}
           onChange={(e) => {
-            setErrors(null);
             setPassword(e.target.value);
           }}
         />

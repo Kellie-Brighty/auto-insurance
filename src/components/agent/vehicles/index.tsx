@@ -440,8 +440,6 @@ const SubscriberCreateVehicleComponent = () => {
           </div>
         </DialogComponent>
 
-        
-
         <div className={"flex items-center justify-end gap-3"}>
           <ButtonComponent
             size={"base"}
@@ -457,7 +455,7 @@ const SubscriberCreateVehicleComponent = () => {
           >
             {loading ? (
               "Wait..."
-            ) : stepIndex === 5 ? (
+            ) : stepIndex === 4 ? (
               <p className={`flex items-center space-x-3`}>
                 Send the referral link{" "}
                 <Image
