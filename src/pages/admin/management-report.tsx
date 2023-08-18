@@ -4,10 +4,32 @@ import FormInputComponent from "@/common/form-input/index.component";
 import FormSelectComponent from "@/common/form-select/index.component";
 import DashboardStatistics from "@/components/admin/DashboardStatistics";
 import ManagmentReportsTable from "@/components/admin/ManagmentReportsTable";
-import AdminLayout from "@/layouts/admin/index.layout";
+import AdminLayout, { ManagementReportData } from "@/layouts/admin/index.layout";
 import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useEffect, useState } from "react";
 
 const ManagementReport = () => {
+  const [gains, setGains] = useState(0);
+  const [losses, setLosses] = useState(0);
+  const [totalAgent, setTotalAgent] = useState(0);
+  const [totalSubscribers, setTotalSubscribers] = useState(0);
+
+  const fetchReport = () => {
+    const reportData = localStorage.getItem("ManagementReport");
+    let parsedData: ManagementReportData | null = null;
+    if (reportData) {
+      parsedData = JSON.parse(reportData) as ManagementReportData;
+      setGains(parsedData.gains);
+      setLosses(parsedData.losses);
+      setTotalAgent(parsedData.total_agent);
+      setTotalSubscribers(parsedData.total_subscriber);
+    }
+  };
+
+  useEffect(() => {
+    fetchReport();
+  }, []);
+
   return (
     <AdminLayout
       title="Management Report"
@@ -17,16 +39,16 @@ const ManagementReport = () => {
         <DashboardStatistics
           firstBoxImageUrl="/assets/admin/total-premium.png"
           firstBoxTitle="Gains"
-          firstBoxPrice="404,555.00"
+          firstBoxPrice={gains}
           secondBoxImageUrl="/assets/admin/total-commissions.png"
           secondBoxTitle="Losses"
-          secondBoxPrice="40,555"
+          secondBoxPrice={losses}
           thirdBoxImageUrl="/assets/admin/total-agents.png"
           thirdBoxTitle="Total Agents"
-          thirdBoxPrice="40,555"
+          thirdBoxPrice={totalAgent}
           fourthBoxImageUrl="/assets/admin/total-subscribers.png"
           fourthBoxTitle="Total Subscribers"
-          fourthBoxPrice="40,555"
+          fourthBoxPrice={totalSubscribers}
         />
 
         <div className={"flex items-center justify-between gap-8"}>

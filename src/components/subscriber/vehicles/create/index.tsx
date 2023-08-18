@@ -11,14 +11,23 @@ import ButtonComponent from "@/common/button/index.component";
 import StepsComponent, { Step } from "@/common/steps/index.component";
 import useUserBasicInfo from "@/hooks/useUserBasicInfo";
 import SubscriberLayout from "@/layouts/subscriber/index.layout";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import api from "../../../../../services/Api";
+import subscriberService from "../../../../../services/subscriber.service";
+import AgentPremiumCalculatorComponent from "@/common/app/kyc-steps/get-estimate";
+import authService from "../../../../../services/auth.service";
+import { GlobalContext } from "../../../../../services/context";
+import { toast } from "react-toastify";
 
 const SubscriberCreateVehicleComponent = () => {
   const { userBasicInfo } = useUserBasicInfo();
+  const { GetVehichleEstimate } = authService;
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { setSavedSubscriberInfo, savedSubscriberInfo } =
+    useContext(GlobalContext);
 
   const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
     carName: "",
@@ -32,6 +41,7 @@ const SubscriberCreateVehicleComponent = () => {
   });
 
   const [vehicleID, setVehicleID] = useState<string | null>(null);
+  const { MakePayment } = subscriberService;
 
   const [vehicleImagesDetails, setVehicleImagesDetails] =
     useState<VehicleImagesDetails>({
@@ -52,8 +62,8 @@ const SubscriberCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "pending" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex - 1);
@@ -62,6 +72,7 @@ const SubscriberCreateVehicleComponent = () => {
 
   const handleNextStep = async () => {
     if (stepIndex === 1) {
+      setLoading(true);
       try {
         const vehicle = await api.post(`/vehicle`, {
           user_id: userBasicInfo?.basic_info.vehicle.user_id,
@@ -75,14 +86,65 @@ const SubscriberCreateVehicleComponent = () => {
           engineNumber: vehicleDetails.engineNumber,
         });
 
+        if (vehicle.status === 200 || vehicle.status === 201) {
+          toast.success(vehicle.data.message);
+          const res = await GetVehichleEstimate(vehicleDetails.carWorth);
+          console.log("Vehcle created:::", vehicle.data);
+          setVehicleID(res.data.data.id);
+
+          if (res.status === 200 || res.status === 201) {
+            const estimatedData = res.data.data;
+            toast.success(res.data.message);
+
+            localStorage.setItem(
+              "SubscriberVehicleEstimateData",
+              JSON.stringify(estimatedData)
+            );
+          }
+        }
+
         setVehicleID(vehicle.data.data.id);
+        setLoading(false);
       } catch (error) {
         console.log("Something went wrong: ", error);
+        toast.error("Something went wrong");
+        setLoading(false);
         return;
       }
-    } else if (stepIndex === 3) {
+    } else if (stepIndex === 2) {
+      setLoading(true);
+      const data = {
+        user_id: userBasicInfo?.basic_info.vehicle.user_id,
+        vehicle_id: vehicleID,
+        policy_amount: savedSubscriberInfo.amount,
+        hasExcessBuyBack: savedSubscriberInfo.hasExcessBuyBack,
+        plan: savedSubscriberInfo.plan,
+      };
       try {
-        await api.post(`/vehicle/media`, {
+        const res = await api.post(`/policy`, {
+          user_id: data.user_id,
+          vehcle_id: vehicleID,
+          item_value: vehicleDetails.carWorth,
+          policy_amount: savedSubscriberInfo.amount,
+          hasExcessBuyBack: savedSubscriberInfo.hasExcessBuyBack,
+          plan: savedSubscriberInfo.plan,
+        });
+
+        if (res.status === 200 || res.status === 201) {
+          toast.success(res.data.message);
+          localStorage.setItem("New Policy ID", res.data.data.id);
+        }
+        setLoading(false);
+      } catch (err: any) {
+        console.log(err.response.data.message);
+        toast.error(err.response.data.message);
+        setLoading(false);
+        return;
+      }
+    } else if (stepIndex === 4) {
+      setLoading(true);
+      try {
+        const res = await api.post(`/vehicle/media`, {
           vehicle_dashboard: vehicleImagesDetails.dashboard,
           vehicle_front: vehicleImagesDetails.frontSide,
           vehicle_left_side: vehicleImagesDetails.leftSide,
@@ -91,8 +153,32 @@ const SubscriberCreateVehicleComponent = () => {
           vehicle_video: vehicleVideoDetails.video,
           vehicle_id: vehicleID,
         });
+
+        if (res.status === 200 || res.status === 201) {
+          const autoFlexUserDataString =
+            localStorage.getItem("AutoFlexUserData");
+
+          if (autoFlexUserDataString) {
+            const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+            const res = await MakePayment(
+              autoFlexUserData.email,
+              savedSubscriberInfo.amount
+            );
+            console.log(res.data);
+            if (res.status === 200 || res.status === 201) {
+              toast.warn("Please wait while we redirect you for payment...");
+              const payment_url =
+                res.data.paystack_response.data.authorization_url;
+
+              if (payment_url) window.location.href = payment_url;
+            }
+          }
+        }
+        setLoading(false);
       } catch (error) {
         console.log("Something went wrong: ", error);
+        toast.error("Something went wrong");
+        setLoading(false);
         return;
       }
     }
@@ -104,8 +190,8 @@ const SubscriberCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "completed" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex + 1);
@@ -121,16 +207,21 @@ const SubscriberCreateVehicleComponent = () => {
       },
       {
         stepIndex: 2,
-        stepLabel: "Upload Vehicle Images",
+        stepLabel: "Choose Plan",
         stepStatus: "pending",
       },
       {
         stepIndex: 3,
-        stepLabel: "Upload Vehicle Videos",
+        stepLabel: "Upload Vehicle Images",
         stepStatus: "pending",
       },
       {
         stepIndex: 4,
+        stepLabel: "Upload Vehicle Videos",
+        stepStatus: "pending",
+      },
+      {
+        stepIndex: 5,
         stepLabel: "Payment",
         stepStatus: "pending",
       },
@@ -152,12 +243,14 @@ const SubscriberCreateVehicleComponent = () => {
             setVehicleDetails={setVehicleDetails}
           />
         ) : stepIndex === 2 ? (
+          <AgentPremiumCalculatorComponent />
+        ) : stepIndex == 3 ? (
           <UploadVehicleImagesComponent
             vehicleImagesDetails={vehicleImagesDetails}
             setVehicleImagesDetails={setVehicleImagesDetails}
             vehicleDetails={vehicleDetails}
           />
-        ) : stepIndex == 3 ? (
+        ) : stepIndex == 4 ? (
           <UploadVehicleVideoComponent
             vehicleVideoDetails={vehicleVideoDetails}
             setVehicleVideoDetails={setVehicleVideoDetails}
@@ -179,8 +272,9 @@ const SubscriberCreateVehicleComponent = () => {
             size={"base"}
             variant={"filled"}
             onClick={handleNextStep}
+            loading={loading}
           >
-            Next Step
+            {stepIndex === 4 ? "Proceed to pay" : "Next Step"}
           </ButtonComponent>
         </div>
       </div>

@@ -4,6 +4,9 @@ import ButtonComponent from "@/common/button/index.component";
 import { useState } from "react";
 import authService from "../../../../services/auth.service";
 import { useRouter } from "next/router";
+import States from "./states.json";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const RegisterAgentComponent = () => {
   const [firstName, setFirstName] = useState("");
@@ -22,6 +25,19 @@ const RegisterAgentComponent = () => {
   const router = useRouter();
 
   const registerAgentAction = async () => {
+    const data = {
+      firstName,
+      lastName,
+      middleName,
+      gender,
+      dob,
+      phone,
+      email,
+      branch,
+      idType,
+      address,
+    };
+    console.log("data:::", data);
     setLoading(true);
     setError("");
     if (
@@ -38,6 +54,7 @@ const RegisterAgentComponent = () => {
     ) {
       setLoading(false);
       setError("No field can be empty");
+      toast.error("No field can be empty");
     } else {
       try {
         const res = await RegisterAgent(
@@ -61,6 +78,7 @@ const RegisterAgentComponent = () => {
       } catch (err: any) {
         console.log(err.response.data.message);
         setError(err.response.data.message);
+        toast.error(err.response.data.message);
         setLoading(false);
       }
     }
@@ -68,13 +86,23 @@ const RegisterAgentComponent = () => {
 
   return (
     <div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className={"p-8 border-b border-gray-main"}>
         <h1 className={"text-2xl font-grotesk font-bold"}>
           Register As An Agent
         </h1>
       </div>
-
-      {error && <p className={`text-red-500 text-[14px] px-[30px]`}>{error}</p>}
 
       <div className={"p-8 grid grid-cols-12 gap-3"}>
         <div className={"col-span-12 lg:col-span-4"}>
@@ -116,8 +144,12 @@ const RegisterAgentComponent = () => {
             required={true}
             label={"Gender"}
             value={gender}
-            onChange={(e) => setGender(e.target.value)}
+            onChange={(e) => {
+              console.log("selected gender:::", e.target.value);
+              setGender(e.target.value);
+            }}
           >
+            <option value="">Select Gender</option>
             <option value={"male"}>Male</option>
             <option value={"female"}>Female</option>
             <option value={"others"}>Others</option>
@@ -165,9 +197,12 @@ const RegisterAgentComponent = () => {
             value={branch}
             onChange={(e) => setBranch(e.target.value)}
           >
-            <option value={"Lagos"}>Lagos State</option>
-            <option value={"Osun"}>Osun State</option>
-            <option value={"Oyo"}>Oyo State</option>
+            <option>Choose your state</option>
+            {States.map((state) => (
+              <option key={state.state} value={state.state}>
+                {state.state}
+              </option>
+            ))}
           </FormSelectComponent>
         </div>
 
@@ -179,11 +214,16 @@ const RegisterAgentComponent = () => {
             value={idType}
             onChange={(e) => setIdType(e.target.value)}
           >
-            <option value={"internationalPassport"}>
+            <option>Select here</option>
+            <option value={"National Identification Card"}>
+              National Identification Card
+            </option>
+            <option value={"International Passport"}>
               International Passport
             </option>
-            <option value={"nationalepassport"}>National Passport</option>
-            <option value={"driverslicense"}>Driver's License</option>
+            <option value={"Driver License"}>Driver&apos;s License</option>
+            <option value={"Voter Card"}>Voter&apos;s Card</option>
+            <option value={"Passport Photograph"}>Passport Photograph</option>
           </FormSelectComponent>
         </div>
 

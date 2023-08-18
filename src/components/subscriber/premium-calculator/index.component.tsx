@@ -3,6 +3,8 @@ import FormCheckboxComponent from "@/common/form-checkbox/index.component";
 import { useEffect, useState } from "react";
 import authService from "../../../../services/auth.service";
 import { useRouter } from "next/router";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type MyObjectType = {
   excessBuyBack: {
@@ -38,6 +40,7 @@ const SubscriberPremiumCalculatorComponent = () => {
     plan: "",
     loading: false,
     error: "",
+    amount: "",
   });
   const [apiState, setApiState] = useState({
     email: "",
@@ -78,14 +81,14 @@ const SubscriberPremiumCalculatorComponent = () => {
       parsedData = JSON.parse(retrievedRgData) as SavedObjectType;
       parsedData = {
         ...parsedData,
-        amount: "90000",
+        amount: states.amount,
         plan: states.plan,
         hasExcessBuyBack: states.excessBuyBack,
-        policyName: "comprehensive flexi",
       };
       console.log("Updated api state:::", parsedData);
       if (states.plan === "") {
         setStates({ ...states, loading: false, error: "Please choose a plan" });
+        toast.error("Please choose a plan");
         return;
       } else {
         const {
@@ -121,6 +124,7 @@ const SubscriberPremiumCalculatorComponent = () => {
             loading: false,
             error: err.response.data.message,
           });
+          toast.error(err.response.data.message);
         }
       }
     }
@@ -128,6 +132,18 @@ const SubscriberPremiumCalculatorComponent = () => {
 
   return (
     <div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className={"p-8 border-b border-gray-main"}>
         <h1 className={"text-2xl font-grotesk font-bold"}>
           Premium Calculator
@@ -150,7 +166,13 @@ const SubscriberPremiumCalculatorComponent = () => {
             name={"planType"}
             value={"yearly"}
             checked={states.plan === "yearly"}
-            onChange={(e) => setStates({ ...states, plan: e.target.value })}
+            onChange={(e) =>
+              setStates({
+                ...states,
+                plan: e.target.value,
+                amount: states.yearly.toString(),
+              })
+            }
           />
         </div>
 
@@ -171,7 +193,13 @@ const SubscriberPremiumCalculatorComponent = () => {
             name={"planType"}
             value={"quarterly"}
             checked={states.plan === "quarterly"}
-            onChange={(e) => setStates({ ...states, plan: e.target.value })}
+            onChange={(e) =>
+              setStates({
+                ...states,
+                plan: e.target.value,
+                amount: states.quarterly.toString(),
+              })
+            }
           />
         </div>
 
@@ -192,7 +220,13 @@ const SubscriberPremiumCalculatorComponent = () => {
             name={"planType"}
             value={"monthly"}
             checked={states.plan === "monthly"}
-            onChange={(e) => setStates({ ...states, plan: e.target.value })}
+            onChange={(e) =>
+              setStates({
+                ...states,
+                plan: e.target.value,
+                amount: states.monthly.toString(),
+              })
+            }
           />
         </div>
 
@@ -211,7 +245,13 @@ const SubscriberPremiumCalculatorComponent = () => {
             name={"planType"}
             value={"weekly"}
             checked={states.plan === "weekly"}
-            onChange={(e) => setStates({ ...states, plan: e.target.value })}
+            onChange={(e) =>
+              setStates({
+                ...states,
+                plan: e.target.value,
+                amount: states.weekly.toString(),
+              })
+            }
           />
         </div>
 
@@ -233,8 +273,9 @@ const SubscriberPremiumCalculatorComponent = () => {
             size={"base"}
             onClick={registerSubscriberAction}
             variant={"filled"}
+            loading={states.loading}
           >
-            {states.loading ? "Wait..." : "Continue"}
+            Continue
           </ButtonComponent>
         </div>
       </div>

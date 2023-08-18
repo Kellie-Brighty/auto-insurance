@@ -11,6 +11,8 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const links = [
   {
@@ -51,20 +53,20 @@ const links = [
   },
 ];
 
-// const belowLinks = [
-//   {
-//     id: 1,
-//     Icon: <Squares2X2Icon className={"w-8 h-8"} />,
-//     label: "Settings",
-//     href: "/agent/settings",
-//   },
-//   {
-//     id: 2,
-//     Icon: <LockClosedIcon className={"w-8 h-8"} />,
-//     label: "Log Out",
-//     href: "/agent/log-out",
-//   },
-// ];
+const belowLinks = [
+  // {
+  //   id: 1,
+  //   Icon: <Squares2X2Icon className={"w-8 h-8"} />,
+  //   label: "Settings",
+  //   href: "/agent/settings",
+  // },
+  {
+    id: 2,
+    Icon: <LockClosedIcon className={"w-8 h-8"} />,
+    label: "Log Out",
+    href: "/auth/choose-user-type",
+  },
+];
 
 interface AgentLayoutProps {
   title: string;
@@ -82,13 +84,29 @@ const AgentLayout: React.FC<AgentLayoutProps> = ({
   useEffect(() => {
     const userType = localStorage.getItem("UserState");
 
-    if (userType !== "Agent") {
-      router.push("/auth/sign-in");
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (!autoFlexUserDataString) {
+      router.push("/auth/choose-user-type");
+    } else if (userType !== "Agent") {
+      router.push("/auth/choose-user-type");
     }
   }, []);
 
   return (
     <div className={"w-full h-screen hidden lg:flex bg-background"}>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div
         className={
           "flex-shrink-0 w-1/5 max-w-sm h-full p-8 space-y-16 bg-white border-r border-gray-main overflow-auto"
@@ -126,7 +144,7 @@ const AgentLayout: React.FC<AgentLayoutProps> = ({
             ))}
           </div>
 
-          {/* <div>
+          <div>
             {belowLinks.map((link) => (
               <Link
                 key={link.id}
@@ -136,12 +154,13 @@ const AgentLayout: React.FC<AgentLayoutProps> = ({
                     ? "text-primary bg-background"
                     : "text-gray-dark"
                 } rounded-md`}
+                onClick={() => localStorage.clear()}
               >
                 {link.Icon}
                 <span className={"font-medium"}>{link.label}</span>
               </Link>
             ))}
-          </div> */}
+          </div>
         </div>
       </div>
 

@@ -1,16 +1,73 @@
-import { useEffect, useMemo, useState } from "react";
-import StepsComponent, { Step } from "@/common/steps/index.component";
-import FormInputComponent from "@/common/form-input/index.component";
-import FormSelectComponent from "@/common/form-select/index.component";
-import FormFileInputComponent from "@/common/form-file-input/index.component";
+import UploadVehicleImagesComponent, {
+  VehicleImagesDetails,
+} from "@/common/app/vehicle/upload-vehicle-images";
+import UploadVehicleVideoComponent, {
+  VehicleVideoDetails,
+} from "@/common/app/vehicle/upload-vehicle-video";
+import VehicleDetailsComponent, {
+  VehicleDetails,
+} from "@/common/app/vehicle/vehicle-details";
 import ButtonComponent from "@/common/button/index.component";
+import StepsComponent, { Step } from "@/common/steps/index.component";
+import useUserBasicInfo from "@/hooks/useUserBasicInfo";
 import AgentLayout from "@/layouts/agent/index.layout";
+import { useEffect, useRef, useState } from "react";
+import api from "../../../../../services/Api";
+import Image from "next/image";
+import agentService from "../../../../../services/agent.service";
+import DialogComponent from "@/common/dialog/index.component";
 
-const AgentCreateVehicleComponent = () => {
+const SubscriberCreateVehicleComponent = () => {
+  const { userBasicInfo } = useUserBasicInfo();
+  const [copyState, setCopyState] = useState(false);
+  const [linkToCpy, setLinkToCopy] = useState("");
+  const [isCopied, setIsCopied] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(linkToCpy).then(() => {
+      setIsCopied(true);
+
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      timerRef.current = window.setTimeout(() => {
+        setIsCopied(false);
+      }, 3000);
+    });
+  };
+
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { GeneratePaymentLink } = agentService;
 
-  const handlePrevStep = () => {
+  const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
+    carName: "",
+    carWorth: 0,
+    year: "",
+    carType: "",
+    carColor: "",
+    plateNumber: "",
+    engineNumber: "",
+    chassisNumber: "",
+  });
+
+  const [vehicleID, setVehicleID] = useState<string | null>(null);
+
+  const [vehicleImagesDetails, setVehicleImagesDetails] =
+    useState<VehicleImagesDetails>({
+      dashboard: "",
+      frontSide: "",
+      leftSide: "",
+      backSide: "",
+      rightSide: "",
+    });
+  const [vehicleVideoDetails, setVehicleVideoDetails] =
+    useState<VehicleVideoDetails>({ video: "" });
+
+  const handlePrevStep = async () => {
     if (stepIndex && stepIndex > 1) {
       setSteps((prev) =>
         prev.map((step) =>
@@ -18,15 +75,264 @@ const AgentCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "pending" }
-            : step,
-        ),
+            : step
+        )
       );
 
       setStepIndex(stepIndex - 1);
     }
   };
 
-  const handleNextStep = () => {
+  // const handleNextStep = async () => {
+  //   const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+  //   if (autoFlexUserDataString) {
+  //     const autoFlexUserData = JSON.parse(autoFlexUserDataString) as any;
+  //     if (stepIndex) {
+  //       switch (stepIndex) {
+  //         case 3:
+  //           console.log(personalDetails);
+  //           setLoading(true);
+
+  //           try {
+  //             const idCardFrontURL = await uploadBase64ImageToFirebaseStorage(
+  //               personalDetails.idCardFront,
+  //               `${uuidv4()}.png`
+  //             );
+
+  //             const idCardBackURL = await uploadBase64ImageToFirebaseStorage(
+  //               personalDetails.idCardBack,
+  //               `${uuidv4()}.png`
+  //             );
+
+  //             const res = await api.post(`/agent/register-subscriber`, {
+  //               firstname: personalDetails.firstName,
+  //               lastname: personalDetails.lastName,
+  //               middlename: personalDetails.middleName,
+  //               homeAddress: personalDetails.homeAddress,
+  //               agent_id: autoFlexUserData.id,
+  //               email: personalDetails.email,
+  //               phoneNumber: personalDetails.phoneNumber,
+  //             });
+
+  //             if (res.status === 200 || res.status === 201) {
+  //               localStorage.setItem(
+  //                 "SubscriberDataOnAgent",
+  //                 JSON.stringify(res.data.subscriber)
+  //               );
+  //               console.log(res.data);
+  //               await api.post(`/subscriber/id-card`, {
+  //                 id_front: idCardFrontURL,
+  //                 id_back: idCardBackURL,
+  //                 user_id: res.data.subscriber.id,
+  //               });
+  //             }
+
+  //             // TODO: add subscriber ID card upload
+
+  //             setLoading(false);
+  //           } catch (error) {
+  //             console.log("Something went wrong: ", error);
+  //             setLoading(false);
+  //             return;
+  //           }
+  //           break;
+  //         case 4:
+  //           console.log(vehicleDetails);
+
+  //           setLoading(true);
+
+  //           try {
+  //             await api.put(
+  //               `/vehicle/${userBasicInfo?.basic_info.vehicle.id}`,
+  //               {
+  //                 ...vehicleDetails,
+  //                 chasisNumber: vehicleDetails.chassisNumber,
+  //                 vehicleMedia: {},
+  //                 vehicleMediaURLs: {},
+  //               }
+  //             );
+
+  //             const vehicleDashboardURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.dashboard,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.dashboard?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleFrontSideURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.frontSide,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.frontSide?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleLeftSideURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.leftSide,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.leftSide?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleBackSideURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.backSide,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.backSide?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleRightSideURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.rightSide,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.rightSide?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+  //             const vehicleVideoURL = await uploadFileToFirebaseStorage(
+  //               vehicleDetails.vehicleMedia.video,
+  //               `${uuidv4()}.${vehicleDetails.vehicleMedia.video?.name.split(
+  //                 "."
+  //               )[1]}`
+  //             );
+
+  //             // TODO: add vehicle media upload
+  //             await api.post(`/vehicle/media`, {
+  //               vehicle_dashboard: vehicleDashboardURL,
+  //               vehicle_front: vehicleFrontSideURL,
+  //               vehicle_left_side: vehicleLeftSideURL,
+  //               vehicle_back: vehicleBackSideURL,
+  //               vehicle_right_side: vehicleRightSideURL,
+  //               vehicle_video: vehicleVideoURL,
+  //               vehicle_id: userBasicInfo?.basic_info.vehicle.id,
+  //             });
+
+  //             setLoading(false);
+  //           } catch (error) {
+  //             console.log("Something went wrong: ", error);
+  //             setLoading(false);
+  //             return;
+  //           }
+  //           break;
+  //         case 5:
+  //           try {
+  //             setLoading(true);
+
+  //             const res = await GeneratePaymentLink(
+  //               personalDetails.email,
+  //               userBasicInfo?.basic_info.policy.policy_amount
+  //             );
+  //             console.log(res.data);
+  //             if (res.status === 200 || res.status === 201) {
+  //               const payment_url =
+  //                 res.data.paystack_response.data.authorization_url;
+
+  //               if (payment_url) {
+  //                 setCopyState(true);
+  //                 setLinkToCopy(payment_url);
+  //               }
+  //             }
+
+  //             setLoading(false);
+  //           } catch (error) {
+  //             console.log("Something went wrong: ", error);
+  //             setLoading(false);
+  //             return;
+  //           }
+  //       }
+
+  //       setSteps((prev) =>
+  //         prev.map((step) =>
+  //           step.stepIndex === stepIndex + 1
+  //             ? { ...step, stepStatus: "in-progress" }
+  //             : step.stepIndex === stepIndex
+  //             ? { ...step, stepStatus: "completed" }
+  //             : step
+  //         )
+  //       );
+
+  //       if (stepIndex === 5) {
+  //         return;
+  //       } else {
+  //         setStepIndex(stepIndex + 1);
+  //       }
+  //     }
+  //   }
+  // };
+
+  const handleNextStep = async () => {
+    if (stepIndex === 1) {
+      setLoading(true);
+      try {
+        const subscriberData = localStorage.getItem("SubscriberDataOnAgent");
+
+        if (subscriberData) {
+          const subscriberDataParsed = JSON.parse(subscriberData) as any;
+          if (subscriberDataParsed) {
+            const vehicle = await api.post(`/vehicle`, {
+              user_id: subscriberDataParsed.id,
+              vehicleName: vehicleDetails.carName,
+              vehicleWorth: vehicleDetails.carWorth,
+              vehicleYear: vehicleDetails.year,
+              vehicleType: vehicleDetails.carType,
+              vehicleColor: vehicleDetails.carColor,
+              plateNumber: vehicleDetails.plateNumber,
+              chasisNumber: vehicleDetails.chassisNumber,
+              engineNumber: vehicleDetails.engineNumber,
+              agent_id: userBasicInfo?.basic_info.policy.user_id,
+            });
+
+            setVehicleID(vehicle.data.data.id);
+            setLoading(false);
+          }
+        } else {
+          setLoading(false);
+          alert("No User data");
+          return;
+        }
+      } catch (error) {
+        console.log("Something went wrong: ", error);
+        setLoading(false);
+        return;
+      }
+    } else if (stepIndex === 3) {
+      setLoading(true);
+      try {
+        const res = await api.post(`/vehicle/media`, {
+          vehicle_dashboard: vehicleImagesDetails.dashboard,
+          vehicle_front: vehicleImagesDetails.frontSide,
+          vehicle_left_side: vehicleImagesDetails.leftSide,
+          vehicle_back: vehicleImagesDetails.backSide,
+          vehicle_right_side: vehicleImagesDetails.rightSide,
+          vehicle_video: vehicleVideoDetails.video,
+          vehicle_id: vehicleID,
+        });
+
+        if (res.status === 200 || res.status === 201) {
+          const subscriberData = localStorage.getItem("SubscriberDataOnAgent");
+
+          if (subscriberData) {
+            const subscriberDataParsed = JSON.parse(subscriberData) as any;
+            if (subscriberDataParsed) {
+              const res = await GeneratePaymentLink(
+                subscriberDataParsed.email,
+                userBasicInfo?.basic_info.policy.policy_amount
+              );
+              console.log(res.data);
+              if (res.status === 200 || res.status === 201) {
+                const payment_url =
+                  res.data.paystack_response.data.authorization_url;
+
+                if (payment_url) {
+                  setCopyState(true);
+                  setLinkToCopy(payment_url);
+                }
+              }
+            }
+          }
+        }
+        setLoading(false);
+      } catch (error) {
+        console.log("Something went wrong: ", error);
+        setLoading(false);
+        return;
+      }
+    }
+
     if (stepIndex && stepIndex < steps.length) {
       setSteps((prev) =>
         prev.map((step) =>
@@ -34,372 +340,17 @@ const AgentCreateVehicleComponent = () => {
             ? { ...step, stepStatus: "in-progress" }
             : step.stepIndex === stepIndex
             ? { ...step, stepStatus: "completed" }
-            : step,
-        ),
+            : step
+        )
       );
 
-      setStepIndex(stepIndex + 1);
+      if (stepIndex === 3) {
+        return;
+      } else {
+        setStepIndex(stepIndex + 1);
+      }
     }
   };
-
-  const VehicleDetailsComponent = useMemo(
-    () =>
-      function VehicleDetailsComponent() {
-        return (
-          <div className={"w-full bg-white rounded-md"}>
-            <div className={"p-6 border-b border-gray-main"}>
-              <h3 className={"text-lg font-medium"}>Vehicle Details</h3>
-            </div>
-
-            <div className={"p-6 grid grid-cols-12 gap-3"}>
-              <div className={"col-span-12 lg:col-span-12"}>
-                <FormInputComponent
-                  name={"carName"}
-                  required={true}
-                  label={"Which car do you own?"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  type={"year"}
-                  name={"year"}
-                  required={true}
-                  label={"Year"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormSelectComponent
-                  name={"carType"}
-                  required={true}
-                  label={"Vehicle Type"}
-                >
-                  <option>Toyota</option>
-                  <option>Toyota</option>
-                  <option>Toyota</option>
-                </FormSelectComponent>
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormSelectComponent
-                  name={"carColor"}
-                  required={true}
-                  label={"Vehicle Color"}
-                >
-                  <option>Black</option>
-                  <option>Black</option>
-                  <option>Black</option>
-                </FormSelectComponent>
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  name={"plateNumber"}
-                  required={true}
-                  label={"Plate Number"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  name={"engineNumber"}
-                  required={true}
-                  label={"Engine Number"}
-                />
-              </div>
-
-              <div className={"col-span-12 lg:col-span-4"}>
-                <FormInputComponent
-                  name={"chassisNumber"}
-                  required={true}
-                  label={"Chassis Number"}
-                />
-              </div>
-            </div>
-          </div>
-        );
-      },
-    [],
-  );
-
-  const UploadVehicleImagesComponent = useMemo(
-    () =>
-      function UploadVehicleImagesComponent() {
-        return (
-          <div className={"w-full bg-white rounded-md"}>
-            <div className={"p-6 border-b border-gray-main"}>
-              <h3 className={"text-lg font-medium"}>Upload Vehicle Images</h3>
-            </div>
-
-            <div className={"p-6 grid grid-cols-12 items-start gap-3"}>
-              <div
-                className={
-                  "col-span-12 xl:col-span-6 p-6 space-y-3 border border-gray-main rounded-md"
-                }
-              >
-                <FormFileInputComponent label={"Vehicle Dashboard"} />
-                <FormFileInputComponent label={"Vehicle Front Side"} />
-                <FormFileInputComponent label={"Vehicle Left Side"} />
-                <FormFileInputComponent label={"Vehicle Back Side"} />
-                <FormFileInputComponent label={"Vehicle Right Side"} />
-              </div>
-
-              <div className={"col-span-12 xl:col-span-6 space-y-3"}>
-                <div
-                  className={
-                    "w-full p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <div className={"col-span-12 flex flex-col gap-1"}>
-                    <span className={"text-sm text-gray-dark"}>Car Name</span>
-                    <span className={"text-2xl font-grotesk font-bold"}>
-                      2023 Toyota Avalon Xl
-                    </span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>Year</span>
-                    <span className={"font-grotesk font-bold"}>2023</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Vehicle Type
-                    </span>
-                    <span className={"font-grotesk font-bold"}>Toyota</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Vehicle Color
-                    </span>
-                    <span className={"font-grotesk font-bold"}>Black</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Plate Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>KJA193AA</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Engine Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>52WVC10338</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Chassis Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>
-                      JYA2UJE0X2A050036
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  className={
-                    "w-full p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div
-                    className={
-                      "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      },
-    [],
-  );
-
-  const UploadVehicleVideoComponent = useMemo(
-    () =>
-      function UploadVehicleVideoComponent() {
-        return (
-          <div className={"w-full bg-white rounded-md"}>
-            <div className={"p-6 border-b border-gray-main"}>
-              <h3 className={"text-lg font-medium"}>Upload Vehicle Video</h3>
-            </div>
-
-            <div className={"p-6 grid grid-cols-12 items-start gap-3"}>
-              <div
-                className={
-                  "col-span-12 xl:col-span-6 p-6 space-y-3 border border-gray-main rounded-md"
-                }
-              >
-                <FormFileInputComponent label={"Vehicle Video"} />
-              </div>
-
-              <div className={"col-span-12 xl:col-span-6 space-y-3"}>
-                <div
-                  className={
-                    "w-full p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <div className={"col-span-12 flex flex-col gap-1"}>
-                    <span className={"text-sm text-gray-dark"}>Car Name</span>
-                    <span className={"text-2xl font-grotesk font-bold"}>
-                      2023 Toyota Avalon Xl
-                    </span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>Year</span>
-                    <span className={"font-grotesk font-bold"}>2023</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Vehicle Type
-                    </span>
-                    <span className={"font-grotesk font-bold"}>Toyota</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Vehicle Color
-                    </span>
-                    <span className={"font-grotesk font-bold"}>Black</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Plate Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>KJA193AA</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Engine Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>52WVC10338</span>
-                  </div>
-
-                  <div
-                    className={"col-span-12 lg:col-span-4 flex flex-col gap-1"}
-                  >
-                    <span className={"text-sm text-gray-dark"}>
-                      Chassis Number
-                    </span>
-                    <span className={"font-grotesk font-bold"}>
-                      JYA2UJE0X2A050036
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  className={
-                    "col-span-12 xl:col-span-6 p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
-                  }
-                >
-                  <div
-                    className={
-                      "col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-                    }
-                  />
-
-                  <div className={"col-span-9 space-y-3"}>
-                    <div className={"col-span-12 flex flex-col gap-1"}>
-                      <span className={"text-sm text-gray-dark"}>
-                        Video URL
-                      </span>
-                      <span className={"text-primary truncate"}>
-                        https://www.pexels.com/search/videos/car/
-                      </span>
-                    </div>
-
-                    <div className={"col-span-12 flex flex-col gap-1"}>
-                      <span className={"text-sm text-gray-dark"}>
-                        File Name
-                      </span>
-                      <span className={"font-grotesk font-bold"}>
-                        Toyota.mp4
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      },
-    [],
-  );
-
-  const StepSwitch = useMemo(
-    () =>
-      function StepSwitch() {
-        switch (stepIndex) {
-          case 1:
-            return <VehicleDetailsComponent />;
-          case 2:
-            return <UploadVehicleImagesComponent />;
-          case 3:
-            return <UploadVehicleVideoComponent />;
-        }
-      },
-    [
-      stepIndex,
-      VehicleDetailsComponent,
-      UploadVehicleImagesComponent,
-      UploadVehicleVideoComponent,
-    ],
-  );
 
   useEffect(() => {
     setSteps([
@@ -434,7 +385,65 @@ const AgentCreateVehicleComponent = () => {
     >
       <div className={"space-y-8"}>
         <StepsComponent steps={steps} />
-        <StepSwitch />
+
+        {stepIndex === 1 ? (
+          <VehicleDetailsComponent
+            vehicleDetails={vehicleDetails}
+            setVehicleDetails={setVehicleDetails}
+          />
+        ) : stepIndex === 2 ? (
+          <UploadVehicleImagesComponent
+            vehicleImagesDetails={vehicleImagesDetails}
+            setVehicleImagesDetails={setVehicleImagesDetails}
+            vehicleDetails={vehicleDetails}
+          />
+        ) : stepIndex == 3 ? (
+          <UploadVehicleVideoComponent
+            vehicleVideoDetails={vehicleVideoDetails}
+            setVehicleVideoDetails={setVehicleVideoDetails}
+            vehicleDetails={vehicleDetails}
+          />
+        ) : (
+          <></>
+        )}
+
+        <DialogComponent show={copyState} onClose={() => setCopyState(false)}>
+          <div className={`p-[24px]`}>
+            <p className={`text-[24px] font-bold font-grotesk`}>
+              Send the referral link{" "}
+            </p>
+            <p className={`mt-[8px] text-[#64748B] text-[15px]`}>
+              Send referral link to subscriber to make for the policy{" "}
+            </p>
+
+            <div
+              className={`mt-[24px] border-[#DCE5F0] border-[1px] 
+              rounded-full flex items-center p-[16px] justify-between`}
+            >
+              <p
+                className={`font-inter font-semibold text-[#64748B] text-[16px]`}
+              >
+                {linkToCpy ? linkToCpy : null}
+              </p>
+              <div
+                className={`flex items-center space-x-5 cursor-pointer`}
+                onClick={handleCopy}
+              >
+                <Image
+                  src={"/assets/agent/copy-gray.svg"}
+                  alt="copy"
+                  width={22}
+                  height={22}
+                />
+                <p
+                  className={`font-inter font-semibold text-[#64748B] text-[16px]`}
+                >
+                  {isCopied ? "Copied to clipboard" : "Copy link"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </DialogComponent>
 
         <div className={"flex items-center justify-end gap-3"}>
           <ButtonComponent
@@ -449,7 +458,21 @@ const AgentCreateVehicleComponent = () => {
             variant={"filled"}
             onClick={handleNextStep}
           >
-            Next Step
+            {loading ? (
+              "Wait..."
+            ) : stepIndex === 3 ? (
+              <p className={`flex items-center space-x-3`}>
+                Send the referral link{" "}
+                <Image
+                  src={"/assets/agent/copy.svg"}
+                  alt="copy"
+                  width={22}
+                  height={22}
+                />
+              </p>
+            ) : (
+              "Next Step"
+            )}
           </ButtonComponent>
         </div>
       </div>
@@ -457,4 +480,4 @@ const AgentCreateVehicleComponent = () => {
   );
 };
 
-export default AgentCreateVehicleComponent;
+export default SubscriberCreateVehicleComponent;

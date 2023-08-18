@@ -9,11 +9,15 @@ const GetAllPolicies = async () => {
 };
 
 const AgentActivation = async (status: string, agent_id: any) => {
-  return await api.post(`/agent/activation`, { status, agent_id });
+  return await api.post(`/admin/agent/activation`, { status, agent_id });
 };
 
 const GetAllClaims = async () => {
   return await api.get(`/claim`);
+};
+
+const GetManagementReport = async () => {
+  return await api.get(`/admin/report/management-report`);
 };
 
 const adminService = {
@@ -21,6 +25,7 @@ const adminService = {
   GetAllPolicies,
   AgentActivation,
   GetAllClaims,
+  GetManagementReport,
 };
 
 export default adminService;

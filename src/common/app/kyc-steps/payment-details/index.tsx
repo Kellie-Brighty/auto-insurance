@@ -2,7 +2,7 @@ import { TruckIcon } from "@heroicons/react/24/outline";
 import React from "react";
 
 interface PaymentDetailsComponentProps {
-  totalAmount: number;
+  totalAmount: number | string;
 }
 
 const PaymentDetailsComponent: React.FC<PaymentDetailsComponentProps> = ({

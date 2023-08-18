@@ -1,5 +1,5 @@
-import AgentVehiclesComponent from "@/components/agent/vehicles";
+import SubscriberCreateVehicleComponent from "@/components/agent/vehicles/index";
 
 export default function SubscriberVehicles() {
-  return <AgentVehiclesComponent />;
+  return <SubscriberCreateVehicleComponent />;
 }

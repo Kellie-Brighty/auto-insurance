@@ -2,7 +2,10 @@ import FormFileInputComponent from "@/common/form-file-input/index.component";
 import FormInputComponent from "@/common/form-input/index.component";
 import FormSelectComponent from "@/common/form-select/index.component";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import VehicleJson from "./carmodelb.json";
+import ColorJson from "./colors.json";
+import YearJson from "./year.json";
 
 export interface VehicleDetails {
   vehicleName: string;
@@ -12,6 +15,7 @@ export interface VehicleDetails {
   plateNumber: string;
   engineNumber: string;
   chassisNumber: string;
+  vehicleWorth: string;
   vehicleMedia: {
     dashboard: File | null;
     frontSide: File | null;
@@ -35,11 +39,16 @@ interface VehicleDetailsComponentProps {
   setVehicleDetails: React.Dispatch<React.SetStateAction<VehicleDetails>>;
 }
 
+interface UserStateInterface {
+  userState: string;
+}
+
 const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
   vehicleDetails,
   setVehicleDetails,
 }) => {
   console.log(vehicleDetails);
+  const [userState, setUserState] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -71,6 +80,14 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
     }
   };
 
+  useEffect(() => {
+    const userState = localStorage.getItem("UserState");
+
+    if (userState) {
+      setUserState(userState);
+    }
+  }, []);
+
   return (
     <>
       <div className={"w-full bg-white rounded-md"}>
@@ -79,25 +96,56 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
         </div>
 
         <div className={"p-6 grid grid-cols-12 gap-3"}>
-          <div className={"col-span-12 lg:col-span-12"}>
-            <FormInputComponent
-              name={"vehicleName"}
-              required={true}
-              label={"Which car do you own?"}
-              defaultValue={vehicleDetails.vehicleName}
-              onChange={handleChange}
-            />
-          </div>
+          {userState === "Agent" && (
+            <>
+              <div className={"col-span-12 lg:col-span-6"}>
+                <FormInputComponent
+                  name={"vehicleName"}
+                  required={true}
+                  label={"Which car do you own?"}
+                  defaultValue={vehicleDetails.vehicleName}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className={"col-span-12 lg:col-span-6"}>
+                <FormInputComponent
+                  name={"vehicleWorth"}
+                  required={true}
+                  label={"What's your car worth?"}
+                  defaultValue={vehicleDetails.vehicleWorth}
+                  onChange={handleChange}
+                />
+              </div>
+            </>
+          )}
+
+          {userState === "Subscriber" && (
+            <div className={"col-span-12 lg:col-span-12"}>
+              <FormInputComponent
+                name={"vehicleName"}
+                required={true}
+                label={"Which car do you own?"}
+                defaultValue={vehicleDetails.vehicleName}
+                onChange={handleChange}
+              />
+            </div>
+          )}
 
           <div className={"col-span-12 lg:col-span-4"}>
-            <FormInputComponent
-              type={"vehicleYear"}
-              name={"vehicleYear"}
+            <FormSelectComponent
+              name={"year"}
               required={true}
               label={"Year"}
               defaultValue={vehicleDetails.vehicleYear}
               onChange={handleChange}
-            />
+            >
+              <option>Choose vehicle year</option>
+              {YearJson.map((year) => (
+                <option key={year.value} value={year.value}>
+                  {year.value}
+                </option>
+              ))}
+            </FormSelectComponent>
           </div>
 
           <div className={"col-span-12 lg:col-span-4"}>
@@ -108,9 +156,12 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
               defaultValue={vehicleDetails.vehicleType}
               onChange={handleChange}
             >
-              <option>Toyota</option>
-              <option>Toyota</option>
-              <option>Toyota</option>
+              <option value="">Select a vehicle</option>
+              {VehicleJson.map((vehicle) => (
+                <option key={vehicle.Abadal} value={vehicle.Abadal}>
+                  {vehicle.Abadal}
+                </option>
+              ))}
             </FormSelectComponent>
           </div>
 
@@ -122,9 +173,12 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
               defaultValue={vehicleDetails.vehicleColor}
               onChange={handleChange}
             >
-              <option>Black</option>
-              <option>Black</option>
-              <option>Black</option>
+              <option value="">Select a color</option>
+              {ColorJson.map((color) => (
+                <option key={color} value={color}>
+                  {color}
+                </option>
+              ))}
             </FormSelectComponent>
           </div>
 

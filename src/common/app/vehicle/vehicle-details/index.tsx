@@ -1,6 +1,9 @@
 import FormInputComponent from "@/common/form-input/index.component";
 import FormSelectComponent from "@/common/form-select/index.component";
 import React from "react";
+import VehicleJson from "./carmodelb.json";
+import YearJson from "./year.json";
+import ColorJson from "./colors.json";
 
 export interface VehicleDetails {
   carName: string;
@@ -23,7 +26,7 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
   setVehicleDetails,
 }) => {
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setVehicleDetails((prev) => ({
       ...prev,
@@ -60,14 +63,20 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
         </div>
 
         <div className={"col-span-12 lg:col-span-4"}>
-          <FormInputComponent
-            type={"year"}
+          <FormSelectComponent
             name={"year"}
             required={true}
             label={"Year"}
             defaultValue={vehicleDetails.year}
             onChange={handleChange}
-          />
+          >
+            <option>Choose vehicle year</option>
+            {YearJson.map((year) => (
+              <option key={year.value} value={year.value}>
+                {year.value}
+              </option>
+            ))}
+          </FormSelectComponent>
         </div>
 
         <div className={"col-span-12 lg:col-span-4"}>
@@ -78,9 +87,12 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
             defaultValue={vehicleDetails.carType}
             onChange={handleChange}
           >
-            <option value={"Toyota"}>Toyota</option>
-            <option value={"Mercedes"}>Mercedes</option>
-            <option value={"Lexus"}>Lexus</option>
+            <option>Choose your vehicle type</option>
+            {VehicleJson.map((vehicle) => (
+              <option key={vehicle.Abadal} value={vehicle.Abadal}>
+                {vehicle.Abadal}
+              </option>
+            ))}
           </FormSelectComponent>
         </div>
 
@@ -92,9 +104,12 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
             defaultValue={vehicleDetails.carColor}
             onChange={handleChange}
           >
-            <option value={"Black"}>Black</option>
-            <option value={"Red"}>Red</option>
-            <option value={"Blue"}>Blue</option>
+            <option>Choose your vehicle color</option>
+            {ColorJson.map((color) => (
+              <option key={color} value={color}>
+                {color}
+              </option>
+            ))}
           </FormSelectComponent>
         </div>
 

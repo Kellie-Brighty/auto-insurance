@@ -29,12 +29,6 @@ const SubscriberPremiumHistoryChartComponent = () => {
             <span className={`text-sm text-green-500`}>+21%</span>
           </div>
         </div>
-
-        <FormSelectComponent>
-          <option>This Year</option>
-          <option>This Year</option>
-          <option>This Year</option>
-        </FormSelectComponent>
       </div>
 
       <AreaChartComponent data={chartData} />

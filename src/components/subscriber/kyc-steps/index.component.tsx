@@ -12,8 +12,24 @@ import SubscriberLayout from "@/layouts/subscriber/index.layout";
 import uploadBase64ImageToFirebaseStorage from "@/utils/firebase/uploadBase64ImageToFBStorage";
 import uploadFileToFirebaseStorage from "@/utils/firebase/uploadFileToFirebaseStorage";
 import { uuidv4 } from "@firebase/util";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import api from "../../../../services/Api";
+import subscriberService from "../../../../services/subscriber.service";
+import { useRouter } from "next/router";
+import { GlobalContext } from "../../../../services/context";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+interface KYCstatus {
+  createdAt: string;
+  deletedAt: null;
+  id: number;
+  kyc_complete: boolean;
+  personal_info_complete: boolean;
+  updatedAt: string;
+  user_id: number;
+  vehicle_info_complete: boolean;
+}
 
 const SubscriberKycStepsComponent = () => {
   const { userBasicInfo, getAndSetUserBasicInfo } = useUserBasicInfo();
@@ -23,14 +39,19 @@ const SubscriberKycStepsComponent = () => {
   const [loading, setLoading] = useState(false);
 
   const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({
-    firstName: "",
-    middleName: "",
-    lastName: "",
+    firstname: "",
+    middlename: "",
+    lastname: "",
     homeAddress: "",
-    modeOfIdentification: "",
+    id_type: "",
     idCardFront: "",
     idCardBack: "",
   });
+  const { MakePayment, VerifyPayment } = subscriberService;
+  const router = useRouter();
+  const { reference } = router.query;
+  const { setKycCompleted } = useContext(GlobalContext);
+  const [kycStatus, setKycStatus] = useState<KYCstatus | null>(null);
 
   const [vehicleDetails, setVehicleDetails] = useState<VehicleDetails>({
     vehicleName: userBasicInfo?.basic_info.vehicle.vehicleName || "",
@@ -40,6 +61,7 @@ const SubscriberKycStepsComponent = () => {
     plateNumber: userBasicInfo?.basic_info.vehicle.plateNumber || "",
     engineNumber: userBasicInfo?.basic_info.vehicle.engineNumber || "",
     chassisNumber: userBasicInfo?.basic_info.vehicle.chasisNumber || "",
+    vehicleWorth: "",
     vehicleMedia: {
       dashboard: null,
       frontSide: null,
@@ -68,6 +90,7 @@ const SubscriberKycStepsComponent = () => {
       );
 
       console.log("kycStata-==", kycStatusData);
+      setKycStatus(kycStatusData.data.data);
     }
 
     // console.log("user basic info:::", userBasicInfo && userBasicInfo);
@@ -114,11 +137,15 @@ const SubscriberKycStepsComponent = () => {
             );
 
             // TODO: add subscriber ID card upload
-            await api.post(`/subscriber/id-card`, {
+            const res = await api.post(`/subscriber/id-card`, {
               id_front: idCardFrontURL,
               id_back: idCardBackURL,
               user_id: userBasicInfo?.basic_info.vehicle.user_id,
             });
+
+            if (res.status === 200 || res.status === 201) {
+              toast.success(res.data.message);
+            }
 
             // TODO: update user data in local storage
             const autoFlexUserData = await api.get(
@@ -142,9 +169,10 @@ const SubscriberKycStepsComponent = () => {
 
             await fetchKycStatus();
             setLoading(false);
-          } catch (error) {
+          } catch (error: any) {
             console.log("Something went wrong: ", error);
             setLoading(false);
+            toast.error("Something went wrong!");
             return;
           }
           break;
@@ -157,6 +185,7 @@ const SubscriberKycStepsComponent = () => {
             await api.put(`/vehicle/${userBasicInfo?.basic_info.vehicle.id}`, {
               ...vehicleDetails,
               chasisNumber: vehicleDetails.chassisNumber,
+              vehicleWorth: userBasicInfo?.basic_info.vehicle.vehicleWorth,
               vehicleMedia: {},
               vehicleMediaURLs: {},
             });
@@ -199,7 +228,7 @@ const SubscriberKycStepsComponent = () => {
             );
 
             // TODO: add vehicle media upload
-            await api.post(`/vehicle/media`, {
+            const res = await api.post(`/vehicle/media`, {
               vehicle_dashboard: vehicleDashboardURL,
               vehicle_front: vehicleFrontSideURL,
               vehicle_left_side: vehicleLeftSideURL,
@@ -209,20 +238,56 @@ const SubscriberKycStepsComponent = () => {
               vehicle_id: userBasicInfo?.basic_info.vehicle.id,
             });
 
+            if (res.status === 200 || res.status === 201) {
+              toast.success(res.data.message);
+            }
+
             // TODO: update vehicle in basic info
             getAndSetUserBasicInfo();
 
             // TODO: update the kyc status
-            // await api.put(
-            //   `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
-            //   {
-            //     vehicle_info_complete: true,
-            //   }
-            // );
+            await api.put(
+              `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+              {
+                vehicle_info_complete: true,
+              }
+            );
             setLoading(false);
             await fetchKycStatus();
           } catch (error) {
             console.log("Something went wrong: ", error);
+            toast.error("Something went wrong!");
+            setLoading(false);
+            return;
+          }
+          break;
+        case 5:
+          try {
+            setLoading(true);
+            const autoFlexUserDataString =
+              localStorage.getItem("AutoFlexUserData");
+
+            if (autoFlexUserDataString) {
+              const autoFlexUserData = JSON.parse(
+                autoFlexUserDataString
+              ) as any;
+              const res = await MakePayment(
+                autoFlexUserData.email,
+                userBasicInfo?.basic_info.policy.policy_amount
+              );
+              console.log(res.data);
+              if (res.status === 200 || res.status === 201) {
+                toast.warn("Please wait, redirecting to payment page...");
+                const payment_url =
+                  res.data.paystack_response.data.authorization_url;
+
+                if (payment_url) window.location.href = payment_url;
+              }
+            }
+            setLoading(false);
+          } catch (error) {
+            console.log("Something went wrong: ", error);
+            toast.error("Something went wrong!");
             setLoading(false);
             return;
           }
@@ -245,7 +310,54 @@ const SubscriberKycStepsComponent = () => {
 
   useEffect(() => {
     fetchKycStatus();
+    getAndSetUserBasicInfo();
   }, []);
+
+  const verifyPaymentAction = async () => {
+    if (reference) {
+      const newPolicyId = localStorage.getItem("New Policy ID");
+
+      if (newPolicyId) {
+        const parsedPlocyId = parseInt(newPolicyId);
+        const res = await VerifyPayment(reference, parsedPlocyId);
+        if (res.data.status === "success") {
+          await api.put(
+            `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+            {
+              kyc_complete: true,
+            }
+          );
+          await api.post(`/policy/${parsedPlocyId}/activate`);
+          await fetchKycStatus();
+          setKycCompleted(true);
+        }
+        console.log(res.data);
+      } else {
+        const res = await VerifyPayment(
+          reference,
+          userBasicInfo?.basic_info.policy.id
+        );
+        if (res.data.status === "success") {
+          await api.put(
+            `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+            {
+              kyc_complete: true,
+            }
+          );
+          await api.post(
+            `/policy/${userBasicInfo?.basic_info.policy.id}/activate`
+          );
+          await fetchKycStatus();
+          setKycCompleted(true);
+        }
+        console.log(res.data);
+      }
+    }
+  };
+
+  useEffect(() => {
+    verifyPaymentAction();
+  }, [reference]);
 
   useEffect(() => {
     setSteps([
@@ -262,21 +374,43 @@ const SubscriberKycStepsComponent = () => {
       {
         stepIndex: 3,
         stepLabel: "Personal Details",
-        stepStatus: "in-progress",
+        stepStatus: kycStatus?.personal_info_complete
+          ? "completed"
+          : "in-progress",
       },
       {
         stepIndex: 4,
         stepLabel: "Car Details",
-        stepStatus: "pending",
+        stepStatus:
+          kycStatus?.personal_info_complete && kycStatus?.vehicle_info_complete
+            ? "completed"
+            : kycStatus?.personal_info_complete &&
+              !kycStatus?.vehicle_info_complete
+            ? "in-progress"
+            : "pending",
       },
       {
         stepIndex: 5,
         stepLabel: "Payment",
-        stepStatus: "pending",
+        stepStatus:
+          kycStatus?.vehicle_info_complete && kycStatus?.kyc_complete
+            ? "completed"
+            : kycStatus?.vehicle_info_complete && !kycStatus?.kyc_complete
+            ? "in-progress"
+            : "pending",
       },
     ]);
-    setStepIndex(3);
-  }, []); // TODO: add a kyc status dependency and update the steps based on the kyc status
+
+    if (kycStatus?.personal_info_complete) {
+      setStepIndex(4);
+    }
+    if (kycStatus?.vehicle_info_complete) {
+      setStepIndex(5);
+    }
+    if (!kycStatus?.personal_info_complete) {
+      setStepIndex(3);
+    }
+  }, [kycStatus]); // TODO: add a kyc status dependency and update the steps based on the kyc status
 
   useEffect(() => {
     setVehicleDetails((prev) => ({
@@ -296,6 +430,18 @@ const SubscriberKycStepsComponent = () => {
       title={"Complete KYC Information"}
       caption={"Provide your personal details and make payment to proceed."}
     >
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className={"space-y-8"}>
         <StepsComponent steps={steps} />
 
@@ -329,8 +475,9 @@ const SubscriberKycStepsComponent = () => {
             size={"base"}
             variant={"filled"}
             onClick={handleNextStep}
+            loading={loading}
           >
-            {loading ? "Wait..." : "Next Step"}
+            {stepIndex === 5 ? "Make payment" : "Next Step"}
           </ButtonComponent>
         </div>
       </div>

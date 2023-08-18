@@ -5,9 +5,25 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import ButtonComponent from "@/common/button/index.component";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { UserDataType } from "../policies/index.component";
 
 const SubscriberClaimComponent = () => {
+  const [username, setUsername] = useState("");
+
+  const getUsername = async () => {
+    const userData = localStorage.getItem("AutoFlexUserData");
+    let parsedData: UserDataType | null = null;
+    if (userData) {
+      parsedData = JSON.parse(userData) as UserDataType;
+      const username = parsedData.firstname + " " + parsedData.lastname;
+      setUsername(username);
+    }
+  };
+
+  useEffect(() => {
+    getUsername();
+  }, []);
   return (
     <SubscriberLayout title={"Claim"} caption={"View and manage your claims"}>
       <div className={"w-full bg-white rounded-md overflow-auto"}>
@@ -20,9 +36,7 @@ const SubscriberClaimComponent = () => {
             "h-full p-16 flex flex-col items-center justify-center gap-8"
           }
         >
-          <h1 className={"text-4xl font-grotesk font-bold"}>
-            Hi, Paulinus Offorzor
-          </h1>
+          <h1 className={"text-4xl font-grotesk font-bold"}>Hi, {username}</h1>
 
           <div className={"max-w-lg flex flex-col gap-3 text-center"}>
             <h3 className={"text-2xl font-grotesk font-bold"}>

@@ -2,14 +2,18 @@ import Image from "next/image";
 import {
   BellIcon,
   ClipboardIcon,
+  Cog6ToothIcon,
   CreditCardIcon,
   DocumentTextIcon,
   Squares2X2Icon,
   TruckIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const links = [
   {
@@ -42,6 +46,27 @@ const links = [
     label: "Transactions",
     href: "/subscriber/transactions",
   },
+  {
+    id: 5,
+    Icon: <Cog6ToothIcon className={"w-8 h-8"} />,
+    label: "Settings",
+    href: "/subscriber/settings/personal-information",
+  },
+];
+
+const belowLinks = [
+  // {
+  //   id: 1,
+  //   Icon: <Squares2X2Icon className={"w-8 h-8"} />,
+  //   label: "Settings",
+  //   href: "/agent/settings",
+  // },
+  {
+    id: 2,
+    Icon: <LockClosedIcon className={"w-8 h-8"} />,
+    label: "Log Out",
+    href: "/auth/choose-user-type",
+  },
 ];
 
 interface SubscriberLayoutProps {
@@ -60,13 +85,29 @@ const SubscriberLayout: React.FC<SubscriberLayoutProps> = ({
   useEffect(() => {
     const userType = localStorage.getItem("UserState");
 
-    if (userType !== "Subscriber") {
-      router.push("/auth/sign-in");
+    const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
+
+    if (!autoFlexUserDataString) {
+      router.push("/auth/choose-user-type");
+    } else if (userType !== "Subscriber") {
+      router.push("/auth/choose-user-type");
     }
   }, []);
 
   return (
     <div className={"w-full h-screen hidden lg:flex bg-background"}>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div
         className={
           "flex-shrink-0 w-1/5 max-w-sm h-full p-8 space-y-8 bg-white border-r border-gray-main overflow-auto"
@@ -96,6 +137,24 @@ const SubscriberLayout: React.FC<SubscriberLayoutProps> = ({
                   ? "text-primary bg-background"
                   : "text-gray-dark"
               } rounded-md`}
+            >
+              {link.Icon}
+              <span className={"font-medium"}>{link.label}</span>
+            </Link>
+          ))}
+        </div>
+
+        <div>
+          {belowLinks.map((link) => (
+            <Link
+              key={link.id}
+              href={link.href}
+              className={`w-full p-3 flex items-center gap-2 ${
+                router.pathname === link.href
+                  ? "text-primary bg-background"
+                  : "text-gray-dark"
+              } rounded-md`}
+              onClick={() => localStorage.clear()}
             >
               {link.Icon}
               <span className={"font-medium"}>{link.label}</span>

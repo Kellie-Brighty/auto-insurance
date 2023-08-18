@@ -22,7 +22,7 @@ const FormInputComponent: React.FC<FormInputComponentProps> = ({
           "p-3 flex items-center gap-2 bg-gray-light border border-gray-main rounded-md"
         }
       >
-        {Icon}
+        <div className={"flex-shrink-0"}>{Icon}</div>
         <input
           {...inputProps}
           className={

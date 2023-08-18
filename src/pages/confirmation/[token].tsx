@@ -2,6 +2,7 @@ import VerifySubscriberEmailComponent from "@/components/subscriber/verify-email
 import { useState } from "react";
 import authService from "../../../services/auth.service";
 import { useRouter } from "next/router";
+import { toast } from "react-toastify";
 
 type SavedObjectType = {
   email: string;
@@ -33,9 +34,11 @@ const VerifyUser = () => {
       try {
         const res = await ResendEmailConfirmation(email);
         console.log(res.data);
+        toast.success(res.data.message);
         setResendLoading(false);
       } catch (err: any) {
         console.log(err.response.data.message);
+        toast.error(err.response.data.message);
         setResendLoading(false);
       }
     }
@@ -55,6 +58,7 @@ const VerifyUser = () => {
     } catch (err: any) {
       setLoading(false);
       console.log(err.response.data.message);
+      toast.error(err.response.data.message);
     }
   };
 

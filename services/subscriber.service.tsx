@@ -45,8 +45,8 @@ const SubscriberID = async (
   );
 };
 
-const GetSubscriberVehicles = async (user_id: any) => {
-  return await api.get(`vehicle?user_id=${user_id}`);
+const GetSubscriberVehicles = async (user_id: any, page: any) => {
+  return await api.get(`vehicle?user_id=${user_id}&page=${page}`);
 };
 
 const CreateVehicle = async (
@@ -73,6 +73,22 @@ const CreateVehicle = async (
   });
 };
 
+const GetPayments = async (user_id: any) => {
+  return await api.get(`/payment?user_id=${user_id}`);
+};
+
+const MakePayment = async (email: any, amount: any) => {
+  return await api.get(`/payment/paystack/pay?email=${email}&amount=${amount}`);
+};
+
+const VerifyPayment = async (reference: any, policy_id: any) => {
+  return await api.post(`/payment/paystack/confirm`, { reference, policy_id });
+};
+
+const FetchKYCStatus = async (user_id: any) => {
+  return await api.get(`/subscriber/kyc-status?user_id=${user_id}`);
+};
+
 const subscriberService = {
   GetPolicies,
   GetSubscriberBasicInfo,
@@ -80,6 +96,10 @@ const subscriberService = {
   SubscriberID,
   GetSubscriberVehicles,
   CreateVehicle,
+  GetPayments,
+  MakePayment,
+  VerifyPayment,
+  FetchKYCStatus,
 };
 
 export default subscriberService;

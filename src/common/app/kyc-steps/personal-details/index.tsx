@@ -4,11 +4,11 @@ import FormSelectComponent from "@/common/form-select/index.component";
 import React from "react";
 
 export interface PersonalDetails {
-  firstName: string;
-  middleName: string;
-  lastName: string;
+  firstname: string;
+  middlename: string;
+  lastname: string;
   homeAddress: string;
-  modeOfIdentification: string;
+  id_type: string;
   idCardFront: any;
   idCardBack: any;
 }
@@ -40,30 +40,30 @@ const PersonalDetailsComponent: React.FC<PersonalDetailsComponentProps> = ({
       <div className={"p-6 grid grid-cols-12 gap-3"}>
         <div className={"col-span-12 lg:col-span-4"}>
           <FormInputComponent
-            name={"firstName"}
+            name={"firstname"}
             required={true}
             label={"First Name"}
-            defaultValue={personalDetails.firstName}
+            defaultValue={personalDetails.firstname}
             onChange={handleChange}
           />
         </div>
 
         <div className={"col-span-12 lg:col-span-4"}>
           <FormInputComponent
-            name={"middleName"}
+            name={"middlename"}
             required={true}
             label={"Middle Name"}
-            defaultValue={personalDetails.middleName}
+            defaultValue={personalDetails.middlename}
             onChange={handleChange}
           />
         </div>
 
         <div className={"col-span-12 lg:col-span-4"}>
           <FormInputComponent
-            name={"lastName"}
+            name={"lastname"}
             required={true}
             label={"Last Name"}
-            defaultValue={personalDetails.lastName}
+            defaultValue={personalDetails.lastname}
             onChange={handleChange}
           />
         </div>
@@ -80,14 +80,22 @@ const PersonalDetailsComponent: React.FC<PersonalDetailsComponentProps> = ({
 
         <div className={"col-span-12"}>
           <FormSelectComponent
-            name={"modeOfIdentification"}
+            name={"id_type"}
             required={true}
             label={"Mode Of Identification"}
-            defaultValue={personalDetails.modeOfIdentification}
+            defaultValue={personalDetails.id_type}
             onChange={handleChange}
           >
-            <option>National Identification Card</option>
-            <option>International Passport</option>
+            <option>Select here</option>
+            <option value={"National Identification Card"}>
+              National Identification Card
+            </option>
+            <option value={"International Passport"}>
+              International Passport
+            </option>
+            <option value={"Driver License"}>Driver License</option>
+            <option value={"Voter Card"}>Voter&apos; Card</option>
+            <option value={"Passport Photograph"}>Passport Photograph</option>
           </FormSelectComponent>
         </div>
 

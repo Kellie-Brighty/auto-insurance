@@ -18,7 +18,7 @@ const AgentCommissionStatsCardComponent: React.FC<
   AgentCommissionStatsCardComponentProps
 > = ({ type, value, change }) => {
   return (
-    <div className={"p-6 flex items-center gap-3 bg-white rounded-md"}>
+    <div className={"p-6 flex items-center gap-3 bg-white rounded-md h-[130px]"}>
       <div
         className={`p-3 ${
           type === "total"

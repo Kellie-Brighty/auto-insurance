@@ -108,8 +108,16 @@ const PersonalDetailsComponent: React.FC<PersonalDetailsComponentProps> = ({
             defaultValue={personalDetails.modeOfIdentification}
             onChange={handleChange}
           >
-            <option>National Identification Card</option>
-            <option>International Passport</option>
+            <option>Select here</option>
+            <option value={"National Identification Card"}>
+              National Identification Card
+            </option>
+            <option value={"International Passport"}>
+              International Passport
+            </option>
+            <option value={"Driver License"}>Driver License</option>
+            <option value={"Voter Card"}>Voter&apos; Card</option>
+            <option value={"Passport Photograph"}>Passport Photograph</option>
           </FormSelectComponent>
         </div>
 
