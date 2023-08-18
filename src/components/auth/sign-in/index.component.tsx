@@ -106,19 +106,6 @@ const SignInComponent = () => {
 
   return (
     <AuthLayout title={"Sign In"}>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
-
       <div className={"space-y-3"}>
         <FormInputComponent
           label={"Email or Phone Number"}

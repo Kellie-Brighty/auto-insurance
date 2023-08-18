@@ -2,6 +2,7 @@ import IndexComponent from "@/components/auth/set-password/index.component";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import authService from "../../../../services/auth.service";
+import { toast } from "react-toastify";
 
 type RetrievedData = {
   email: string;
@@ -27,10 +28,12 @@ export default function ResetPassword() {
     if (newPassword === "" || confirmPassword === "") {
       setLoading(false);
       setErrors("No field should be empty");
+      toast.error("No field shuld be empty");
       return;
     } else if (newPassword !== confirmPassword) {
       setLoading(false);
       setErrors("New password does not match confirm password.");
+      toast.error("New password does not match confirm password.");
       return;
     } else {
       try {
@@ -45,12 +48,14 @@ export default function ResetPassword() {
             if (response.status === 200 || response.status === 201) {
               router.push("/auth/sign-in");
               setLoading(false);
+              toast.success(response.data.message);
             }
           }
         });
       } catch (err: any) {
         console.log(err.response.data.message);
         setErrors(err.response.data.message);
+        toast.error(err.response.data.message);
         setLoading(false);
       }
     }
@@ -68,11 +73,13 @@ export default function ResetPassword() {
         console.log(res.data);
         if (res.status === 200 || res.status === 201) {
           setResendLoading(false);
+          toast.success(res.data.message);
         }
       } catch (err: any) {
         setResendLoading(false);
         console.log(err.response.data.message);
         setErrors(err.response.data.message);
+        toast.error(err.response.data.message);
       }
     }
   };

@@ -17,6 +17,7 @@ import subscriberService from "../../../../../services/subscriber.service";
 import AgentPremiumCalculatorComponent from "@/common/app/kyc-steps/get-estimate";
 import authService from "../../../../../services/auth.service";
 import { GlobalContext } from "../../../../../services/context";
+import { toast } from "react-toastify";
 
 const SubscriberCreateVehicleComponent = () => {
   const { userBasicInfo } = useUserBasicInfo();
@@ -86,12 +87,14 @@ const SubscriberCreateVehicleComponent = () => {
         });
 
         if (vehicle.status === 200 || vehicle.status === 201) {
+          toast.success(vehicle.data.message);
           const res = await GetVehichleEstimate(vehicleDetails.carWorth);
           console.log("Vehcle created:::", vehicle.data);
           setVehicleID(res.data.data.id);
 
           if (res.status === 200 || res.status === 201) {
             const estimatedData = res.data.data;
+            toast.success(res.data.message);
 
             localStorage.setItem(
               "SubscriberVehicleEstimateData",
@@ -104,6 +107,7 @@ const SubscriberCreateVehicleComponent = () => {
         setLoading(false);
       } catch (error) {
         console.log("Something went wrong: ", error);
+        toast.error("Something went wrong");
         setLoading(false);
         return;
       }
@@ -127,11 +131,13 @@ const SubscriberCreateVehicleComponent = () => {
         });
 
         if (res.status === 200 || res.status === 201) {
+          toast.success(res.data.message);
           localStorage.setItem("New Policy ID", res.data.data.id);
         }
         setLoading(false);
       } catch (err: any) {
         console.log(err.response.data.message);
+        toast.error(err.response.data.message);
         setLoading(false);
         return;
       }
@@ -160,6 +166,7 @@ const SubscriberCreateVehicleComponent = () => {
             );
             console.log(res.data);
             if (res.status === 200 || res.status === 201) {
+              toast.warn("Please wait while we redirect you for payment...");
               const payment_url =
                 res.data.paystack_response.data.authorization_url;
 
@@ -170,6 +177,7 @@ const SubscriberCreateVehicleComponent = () => {
         setLoading(false);
       } catch (error) {
         console.log("Something went wrong: ", error);
+        toast.error("Something went wrong");
         setLoading(false);
         return;
       }
@@ -264,12 +272,9 @@ const SubscriberCreateVehicleComponent = () => {
             size={"base"}
             variant={"filled"}
             onClick={handleNextStep}
+            loading={loading}
           >
-            {loading
-              ? "Wait..."
-              : stepIndex === 4
-              ? "Proceed to pay"
-              : "Next Step"}
+            {stepIndex === 4 ? "Proceed to pay" : "Next Step"}
           </ButtonComponent>
         </div>
       </div>

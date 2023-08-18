@@ -3,6 +3,8 @@ import FormCheckboxComponent from "@/common/form-checkbox/index.component";
 import { useEffect, useState } from "react";
 import authService from "../../../../services/auth.service";
 import { useRouter } from "next/router";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type MyObjectType = {
   excessBuyBack: {
@@ -86,6 +88,7 @@ const SubscriberPremiumCalculatorComponent = () => {
       console.log("Updated api state:::", parsedData);
       if (states.plan === "") {
         setStates({ ...states, loading: false, error: "Please choose a plan" });
+        toast.error("Please choose a plan");
         return;
       } else {
         const {
@@ -121,6 +124,7 @@ const SubscriberPremiumCalculatorComponent = () => {
             loading: false,
             error: err.response.data.message,
           });
+          toast.error(err.response.data.message);
         }
       }
     }
@@ -128,6 +132,18 @@ const SubscriberPremiumCalculatorComponent = () => {
 
   return (
     <div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className={"p-8 border-b border-gray-main"}>
         <h1 className={"text-2xl font-grotesk font-bold"}>
           Premium Calculator
@@ -257,8 +273,9 @@ const SubscriberPremiumCalculatorComponent = () => {
             size={"base"}
             onClick={registerSubscriberAction}
             variant={"filled"}
+            loading={states.loading}
           >
-            {states.loading ? "Wait..." : "Continue"}
+            Continue
           </ButtonComponent>
         </div>
       </div>

@@ -36,7 +36,6 @@ const IndexComponent = ({
   return (
     <AuthLayout title={"Set Password"}>
       <div className={"space-y-3"}>
-        {error !== "" && <p className={`text-red-500 text-[14px]`}>{error}</p>}
         <FormInputComponent
           type={"password"}
           label={"New Password"}
@@ -64,8 +63,9 @@ const IndexComponent = ({
           fullWidth={true}
           variant={"filled"}
           onClick={action}
+          loading={loading}
         >
-          {loading ? "Please wait..." : "Set Password"}
+          Set Password
         </ButtonComponent>
 
         <p className={`cursor-pointer`} onClick={resendEmail}>

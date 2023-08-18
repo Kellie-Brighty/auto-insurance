@@ -7,6 +7,8 @@ import { GlobalContext } from "../../../../services/context";
 import authService from "../../../../services/auth.service";
 import VehicleJson from "./carmodelb.json";
 import YearJson from "./year.json";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const GetEstimateForSubscriberComponent = () => {
   const router = useRouter();
@@ -38,6 +40,7 @@ const GetEstimateForSubscriberComponent = () => {
         loading: false,
         error: "No field should be left empty",
       });
+      toast.error("No field should be left empty");
       return;
     } else {
       try {
@@ -59,12 +62,25 @@ const GetEstimateForSubscriberComponent = () => {
           loading: false,
           error: err.response.data.message,
         });
+        toast.error(err.response.data.message);
       }
     }
   };
 
   return (
     <div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className={"p-8 border-b border-gray-main"}>
         <h1 className={"text-2xl font-grotesk font-bold"}>Get Estimate</h1>
       </div>
@@ -151,8 +167,9 @@ const GetEstimateForSubscriberComponent = () => {
             size={"base"}
             onClick={() => getEstimateAction()}
             variant={"filled"}
+            loading={uiStates.loading}
           >
-            {uiStates.loading ? "Getting..." : "Get Estimate"}
+            Get Estimate
           </ButtonComponent>
         </div>
       </div>

@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 import adminService from "../../../services/admin.service";
 import { LockClosedIcon } from "@heroicons/react/24/outline";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const links = [
   {
@@ -140,6 +142,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
 
   return (
     <div className={"w-full h-screen hidden lg:flex bg-background"}>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div
         className={
           "flex-shrink-0 w-1/5 max-w-sm h-full space-y-8 bg-white border-r border-gray-main overflow-auto"

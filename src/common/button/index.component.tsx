@@ -1,4 +1,6 @@
 import React from "react";
+import Lottie from "lottie-react";
+import Loading from "../../../public/assets/loading.json";
 
 interface ButtonComponentProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -6,6 +8,7 @@ interface ButtonComponentProps
   variant: "filled" | "outlined" | "ghost";
   fullWidth?: boolean;
   children: React.ReactNode;
+  loading?: boolean;
 }
 
 const ButtonComponent: React.FC<ButtonComponentProps> = ({
@@ -13,6 +16,7 @@ const ButtonComponent: React.FC<ButtonComponentProps> = ({
   variant,
   fullWidth,
   children,
+  loading,
   ...buttonProps
 }) => {
   return (
@@ -28,9 +32,17 @@ const ButtonComponent: React.FC<ButtonComponentProps> = ({
           : variant === "ghost"
           ? "text-primary bg-primary bg-opacity-5"
           : ""
-      } rounded-md`}
+      } rounded-md h-[50px] flex justify-center items-center`}
     >
-      <span>{children}</span>
+      {loading ? (
+        <Lottie
+          animationData={Loading}
+          loop={true}
+          className={`w-[50px] h-[50px]`}
+        />
+      ) : (
+        <span>{children}</span>
+      )}
     </button>
   );
 };

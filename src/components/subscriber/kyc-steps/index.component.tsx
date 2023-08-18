@@ -332,6 +332,25 @@ const SubscriberKycStepsComponent = () => {
           setKycCompleted(true);
         }
         console.log(res.data);
+      } else {
+        const res = await VerifyPayment(
+          reference,
+          userBasicInfo?.basic_info.policy.id
+        );
+        if (res.data.status === "success") {
+          await api.put(
+            `/subscriber/kyc-status?user_id=${userBasicInfo?.basic_info.vehicle.user_id}`,
+            {
+              kyc_complete: true,
+            }
+          );
+          await api.post(
+            `/policy/${userBasicInfo?.basic_info.policy.id}/activate`
+          );
+          await fetchKycStatus();
+          setKycCompleted(true);
+        }
+        console.log(res.data);
       }
     }
   };
@@ -456,12 +475,9 @@ const SubscriberKycStepsComponent = () => {
             size={"base"}
             variant={"filled"}
             onClick={handleNextStep}
+            loading={loading}
           >
-            {loading
-              ? "Wait..."
-              : stepIndex === 5
-              ? "Make payment"
-              : "Next Step"}
+            {stepIndex === 5 ? "Make payment" : "Next Step"}
           </ButtonComponent>
         </div>
       </div>

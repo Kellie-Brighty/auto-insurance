@@ -1,5 +1,7 @@
 import ButtonComponent from "@/common/button/index.component";
 import Link from "next/link";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const EmailIllustrationComponent = () => {
   return (
@@ -263,6 +265,18 @@ const VerifySubscriberEmailComponent = ({
         "w-full h-screen flex items-center justify-center bg-background"
       }
     >
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div
         className={
           "w-11/12 max-w-lg max-h-[91.67%] p-8 flex flex-col items-center justify-center gap-6 bg-white rounded-md overflow-hidden"
@@ -284,8 +298,13 @@ const VerifySubscriberEmailComponent = ({
             </ButtonComponent>
           </Link>
         ) : (
-          <ButtonComponent size={"base"} onClick={action} variant={"filled"}>
-            {actionLoading ? "Wait..." : buttonText}
+          <ButtonComponent
+            size={"base"}
+            onClick={action}
+            variant={"filled"}
+            loading={actionLoading}
+          >
+            {buttonText}
           </ButtonComponent>
         )}
 
