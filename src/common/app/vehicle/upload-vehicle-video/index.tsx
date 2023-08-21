@@ -20,16 +20,25 @@ const UploadVehicleVideoComponent: React.FC<
   UploadVehicleVideoComponentProps
 > = ({ vehicleVideoDetails, setVehicleVideoDetails, vehicleDetails }) => {
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length && e.target.files[0]) {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      // Check file type
+      if (!file.type.includes("video/")) {
+        alert("Only video files are allowed.");
+        return;
+      }
+
       const fileURL = await uploadFileToFirebaseStorage(
-        e.target.files[0],
-        `${uuidv4()}.${e.target.files[0].name.split(".")[1]}`,
+        file,
+        `${uuidv4()}.${file.name.split(".")[1]}`
       );
 
       setVehicleVideoDetails((prev) => ({
         ...prev,
         [e.target.name]: fileURL,
       }));
+      console.log(vehicleVideoDetails);
     }
   };
 
@@ -122,8 +131,10 @@ const UploadVehicleVideoComponent: React.FC<
             <div className={"col-span-9 space-y-3"}>
               <div className={"col-span-12 flex flex-col gap-1"}>
                 <span className={"text-sm text-gray-dark"}>Video URL</span>
-                <span className={"text-primary truncate"}>
-                  {vehicleVideoDetails.video}
+                <span className={"text-primary truncate cursor-pointer"}>
+                  <a href={vehicleVideoDetails.video} target="_blank">
+                    {vehicleVideoDetails.video}
+                  </a>
                 </span>
               </div>
 

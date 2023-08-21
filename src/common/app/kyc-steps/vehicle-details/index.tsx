@@ -37,6 +37,7 @@ export interface VehicleDetails {
 interface VehicleDetailsComponentProps {
   vehicleDetails: VehicleDetails;
   setVehicleDetails: React.Dispatch<React.SetStateAction<VehicleDetails>>;
+  vehiclVideoURL: string;
 }
 
 interface UserStateInterface {
@@ -46,6 +47,7 @@ interface UserStateInterface {
 const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
   vehicleDetails,
   setVehicleDetails,
+  vehiclVideoURL,
 }) => {
   console.log(vehicleDetails);
   const [userState, setUserState] = useState("");
@@ -53,15 +55,65 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
+    const { name, value } = e.target;
     setVehicleDetails((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value.toUpperCase(), // Convert value to uppercase
     }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
+      // Check file type
+      if (file.type !== "image/jpeg" && file.type !== "image/png") {
+        alert("Only JPG or PNG files are allowed.");
+        return;
+      }
+
+      // Check file size
+      if (file.size > 2 * 1024 * 1024) {
+        // 2MB in bytes
+        alert("File size exceeds the limit of 2MB.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVehicleDetails((prev) => ({
+          ...prev,
+          vehicleMedia: {
+            ...prev.vehicleMedia,
+            [e.target.name]: file,
+          },
+          vehicleMediaURLs: {
+            ...prev.vehicleMediaURLs,
+            [e.target.name]: reader.result as string,
+          },
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      // Check file type
+      if (file.type !== "video/mp4") {
+        alert("Only MP4 video files are allowed.");
+        return;
+      }
+
+      // Check file size
+      if (file.size > 20 * 1024 * 1024) {
+        // 20MB in bytes
+        alert("File size exceeds the limit of 20MB.");
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setVehicleDetails((prev) => ({
@@ -424,7 +476,7 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
 
       <div className={"w-full bg-white rounded-md"}>
         <div className={"p-6 border-b border-gray-main"}>
-          <h3 className={"text-lg font-medium"}>Upload Vehicle Vidoe</h3>
+          <h3 className={"text-lg font-medium"}>Upload Vehicle Video</h3>
         </div>
 
         <div className={"p-6 grid grid-cols-12 items-start gap-3"}>
@@ -436,7 +488,7 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
             <FormFileInputComponent
               name={"video"}
               label={"Vehicle Video"}
-              onChange={handleFileChange}
+              onChange={handleVideoFileChange}
             />
           </div>
 
@@ -449,7 +501,9 @@ const VehicleDetailsComponent: React.FC<VehicleDetailsComponentProps> = ({
               <div className={"col-span-12 flex flex-col gap-1"}>
                 <span className={"text-sm text-gray-dark"}>Video URL</span>
                 <span className={"text-primary truncate"}>
-                  {vehicleDetails.vehicleMediaURLs.video || "NA"}
+                  {vehicleDetails.vehicleMedia.video
+                    ? `${vehicleDetails.vehicleMedia.video.name}`
+                    : "NA"}
                 </span>
               </div>
 

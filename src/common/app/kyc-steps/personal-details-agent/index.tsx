@@ -27,9 +27,10 @@ const PersonalDetailsComponent: React.FC<PersonalDetailsComponentProps> = ({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
+    const { name, value } = e.target;
     setPersonalDetails((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value.toUpperCase(),
     }));
   };
 

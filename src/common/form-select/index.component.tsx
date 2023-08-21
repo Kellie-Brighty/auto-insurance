@@ -25,7 +25,7 @@ const FormSelectComponent: React.FC<FormSelectComponentProps> = ({
         <select
           {...selectProps}
           className={
-            "flex-1 text-gray-dark font-medium bg-transparent focus:outline-none"
+            "flex-1 text-gray-dark font-medium bg-transparent focus:outline-none uppercase"
           }
         >
           {children}

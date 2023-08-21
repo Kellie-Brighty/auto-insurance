@@ -79,6 +79,7 @@ const SubscriberKycStepsComponent = () => {
       video: null,
     },
   });
+  const [vehchleVideo, setVehicleVideo] = useState("");
 
   const fetchKycStatus = async () => {
     const autoFlexUserDataString = localStorage.getItem("AutoFlexUserData");
@@ -226,6 +227,7 @@ const SubscriberKycStepsComponent = () => {
                 "."
               )[1]}`
             );
+            setVehicleVideo(vehicleVideoURL);
 
             // TODO: add vehicle media upload
             const res = await api.post(`/vehicle/media`, {
@@ -454,6 +456,7 @@ const SubscriberKycStepsComponent = () => {
           <VehicleDetailsComponent
             vehicleDetails={vehicleDetails}
             setVehicleDetails={setVehicleDetails}
+            vehiclVideoURL={vehchleVideo}
           />
         ) : stepIndex === 5 ? (
           <PaymentDetailsComponent

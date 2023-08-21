@@ -2,7 +2,8 @@ import { VehicleDetails } from "@/common/app/vehicle/vehicle-details";
 import FormFileInputComponent from "@/common/form-file-input/index.component";
 import uploadFileToFirebaseStorage from "@/utils/firebase/uploadFileToFirebaseStorage";
 import { uuidv4 } from "@firebase/util";
-import React from "react";
+import Image from "next/image";
+import React, { useState } from "react";
 
 export interface VehicleImagesDetails {
   dashboard: string;
@@ -23,17 +24,32 @@ interface UploadVehicleImagesComponentProps {
 const UploadVehicleImagesComponent: React.FC<
   UploadVehicleImagesComponentProps
 > = ({ vehicleImagesDetails, setVehicleImagesDetails, vehicleDetails }) => {
+  const [loading, setLoading] = useState(false);
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length && e.target.files[0]) {
+    setLoading(true);
+    const file = e.target.files?.[0];
+
+    if (file) {
+      // Check file type
+      if (
+        !file.type.includes("image/png") &&
+        !file.type.includes("image/jpeg")
+      ) {
+        alert("Only PNG and JPG images are allowed.");
+        return;
+      }
+
       const fileURL = await uploadFileToFirebaseStorage(
-        e.target.files[0],
-        `${uuidv4()}.${e.target.files[0].name.split(".")[1]}`,
+        file,
+        `${uuidv4()}.${file.name.split(".")[1]}`
       );
 
       setVehicleImagesDetails((prev) => ({
         ...prev,
         [e.target.name]: fileURL,
       }));
+      console.log(vehicleImagesDetails);
+      setLoading(false);
     }
   };
 
@@ -137,35 +153,120 @@ const UploadVehicleImagesComponent: React.FC<
               "w-full p-6 grid grid-cols-12 gap-3 border border-gray-main rounded-md"
             }
           >
-            <div
-              className={
-                "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-              }
-            />
+            {vehicleImagesDetails.dashboard ? (
+              <div
+                className={
+                  "relative col-span-6 lg:col-span-3 h-auto aspect-square rounded-md overflow-hidden"
+                }
+              >
+                <Image
+                  layout={"fill"}
+                  objectFit={"cover"}
+                  src={vehicleImagesDetails.dashboard}
+                  alt={"AutoFlex"}
+                />
+              </div>
+            ) : loading ? (
+              "wait..."
+            ) : (
+              <div
+                className={
+                  "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
+                }
+              />
+            )}
 
-            <div
-              className={
-                "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-              }
-            />
+            {vehicleImagesDetails.frontSide ? (
+              <div
+                className={
+                  "relative col-span-6 lg:col-span-3 h-auto aspect-square rounded-md overflow-hidden"
+                }
+              >
+                <Image
+                  layout={"fill"}
+                  objectFit={"cover"}
+                  src={vehicleImagesDetails.frontSide}
+                  alt={"AutoFlex"}
+                />
+              </div>
+            ) : loading ? (
+              "wait..."
+            ) : (
+              <div
+                className={
+                  "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
+                }
+              />
+            )}
 
-            <div
-              className={
-                "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-              }
-            />
+            {vehicleImagesDetails.leftSide ? (
+              <div
+                className={
+                  "relative col-span-6 lg:col-span-3 h-auto aspect-square rounded-md overflow-hidden"
+                }
+              >
+                <Image
+                  layout={"fill"}
+                  objectFit={"cover"}
+                  src={vehicleImagesDetails.leftSide}
+                  alt={"AutoFlex"}
+                />
+              </div>
+            ) : loading ? (
+              "wait..."
+            ) : (
+              <div
+                className={
+                  "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
+                }
+              />
+            )}
 
-            <div
-              className={
-                "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-              }
-            />
+            {vehicleImagesDetails.backSide ? (
+              <div
+                className={
+                  "relative col-span-6 lg:col-span-3 h-auto aspect-square rounded-md overflow-hidden"
+                }
+              >
+                <Image
+                  layout={"fill"}
+                  objectFit={"cover"}
+                  src={vehicleImagesDetails.backSide}
+                  alt={"AutoFlex"}
+                />
+              </div>
+            ) : loading ? (
+              "wait..."
+            ) : (
+              <div
+                className={
+                  "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
+                }
+              />
+            )}
 
-            <div
-              className={
-                "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
-              }
-            />
+            {vehicleImagesDetails.rightSide ? (
+              <div
+                className={
+                  "relative col-span-6 lg:col-span-3 h-auto aspect-square rounded-md overflow-hidden"
+                }
+              >
+                <Image
+                  layout={"fill"}
+                  objectFit={"cover"}
+                  src={vehicleImagesDetails.rightSide}
+                  alt={"AutoFlex"}
+                />
+              </div>
+            ) : loading ? (
+              "wait..."
+            ) : (
+              <div
+                className={
+                  "col-span-6 lg:col-span-3 h-auto aspect-square bg-gray-light rounded-md"
+                }
+              />
+            )}
           </div>
         </div>
       </div>

@@ -1,10 +1,11 @@
 import ButtonComponent from "@/common/button/index.component";
 import FormCheckboxComponent from "@/common/form-checkbox/index.component";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import authService from "../../../../services/auth.service";
 import { useRouter } from "next/router";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { GlobalContext } from "../../../../services/context";
 
 type MyObjectType = {
   excessBuyBack: {
@@ -55,6 +56,7 @@ const SubscriberPremiumCalculatorComponent = () => {
   });
   const { RegisterSubscriber } = authService;
   const router = useRouter();
+  const { estimateModal } = useContext(GlobalContext);
 
   useEffect(() => {
     const retreivedEstimateData = localStorage.getItem(
@@ -71,7 +73,7 @@ const SubscriberPremiumCalculatorComponent = () => {
         weekly: parsedData.weekly,
       });
     }
-  }, []);
+  }, [estimateModal]);
 
   const registerSubscriberAction = async () => {
     setStates({ ...states, loading: true });

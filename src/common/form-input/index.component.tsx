@@ -26,7 +26,7 @@ const FormInputComponent: React.FC<FormInputComponentProps> = ({
         <input
           {...inputProps}
           className={
-            "flex-1 text-gray-dark font-medium bg-transparent focus:outline-none"
+            "flex-1 text-gray-dark font-medium bg-transparent focus:outline-none uppercase"
           }
         />
       </div>
