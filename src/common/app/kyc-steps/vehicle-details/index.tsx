@@ -37,7 +37,7 @@ export interface VehicleDetails {
 interface VehicleDetailsComponentProps {
   vehicleDetails: VehicleDetails;
   setVehicleDetails: React.Dispatch<React.SetStateAction<VehicleDetails>>;
-  vehiclVideoURL: string;
+  vehiclVideoURL?: string;
 }
 
 interface UserStateInterface {
